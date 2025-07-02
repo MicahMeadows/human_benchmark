@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ReactionTimeTestPage extends StatefulWidget {
   const ReactionTimeTestPage({super.key});
@@ -25,8 +26,11 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
   static const numTestsToComplete = 5;
   int testsCompleted = 0;
   int totalReactionTimeMs = 0;
+  int activeTestId = 0;
 
   void startTest() async {
+    activeTestId++;
+    int thisTestId = activeTestId;
     lastReactionMs = 0;
     startTimeMs = 0;
     int randomDelayMax = 7000;
@@ -40,7 +44,8 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
 
     await Future.delayed(Duration(milliseconds: randomDelayMs));
 
-    if (testState == TestState.started) {
+    if (testState == TestState.started && activeTestId == thisTestId) {
+      // the id check ensures that if we started a new test while waiting, we don't change the state of the previous one
       // only change state if still started, if already failed this will not change
       setState(() {
         testState = TestState.ready;
@@ -94,12 +99,18 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
         {
           if (testsCompleted == numTestsToComplete) {
             return Text(
-              'Average reaction time: ${totalReactionTimeMs ~/ testsCompleted}ms',
+              'Reaction Time: ${totalReactionTimeMs ~/ numTestsToComplete}ms\n',
             );
           }
-          return Text('${lastReactionMs}ms');
+          return Text(
+            '${lastReactionMs}ms ($testsCompleted/$numTestsToComplete)',
+          );
         }
     }
+  }
+
+  void exitGame() {
+    context.go('/');
   }
 
   @override
@@ -111,7 +122,11 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
             if (testState == TestState.notStarted ||
                 testState == TestState.early ||
                 testState == TestState.finished) {
-              startTest();
+              if (testsCompleted >= numTestsToComplete) {
+                exitGame();
+              } else {
+                startTest();
+              }
             } else if (testState == TestState.ready) {
               registerCorrectClick();
             } else if (testState == TestState.started) {
