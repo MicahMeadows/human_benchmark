@@ -35,6 +35,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
           spacing: 4,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            buildGameButton('Visual Memory', '/visual_memory_game'),
             buildGameButton('Chimp Game', '/chimp_game'),
             buildGameButton('Reaction Test', '/reaction_game'),
           ],
