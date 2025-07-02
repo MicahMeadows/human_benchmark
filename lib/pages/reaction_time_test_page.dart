@@ -23,7 +23,7 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
   int startTimeMs = 0;
   int randomDelayMs = 0;
   int lastReactionMs = 0;
-  static const numTestsToComplete = 5;
+  static const numTestsToComplete = 3;
   int testsCompleted = 0;
   int totalReactionTimeMs = 0;
   int activeTestId = 0;
