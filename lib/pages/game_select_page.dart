@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/utils.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
 
 class GameSelectPage extends StatefulWidget {
   const GameSelectPage({super.key});
@@ -9,6 +13,7 @@ class GameSelectPage extends StatefulWidget {
 }
 
 class _GameSelectPageState extends State<GameSelectPage> {
+  final gameResultCubit = GetIt.I<GameResultCubit>();
   Widget buildGameButton(String label, String route) {
     return InkWell(
       onTap: () {
@@ -36,9 +41,20 @@ class _GameSelectPageState extends State<GameSelectPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
+              color: Colors.green,
               height: 300,
               width: 600,
-              color: Colors.green,
+              child: BlocBuilder<GameResultCubit, GameResultState>(
+                bloc: gameResultCubit,
+                builder: (context, state) {
+                  return state.when(
+                    initial: () => Center(child: Text('no game played')),
+                    chimp_result: (result) => Center(
+                      child: Text('sequence length: ${result.sequenceLength}'),
+                    ),
+                  );
+                },
+              ),
             ),
             SizedBox(height: 30),
             buildGameButton('Visual Memory', '/visual_memory_game'),

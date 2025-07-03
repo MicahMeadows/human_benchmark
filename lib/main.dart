@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:human_benchmark/pages/chimp_test_page.dart';
+import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
+import 'package:human_benchmark/pages/games/chimp_test_page.dart';
 import 'package:human_benchmark/pages/chimp_test_result_page.dart';
 import 'package:human_benchmark/pages/game_select_page.dart';
-import 'package:human_benchmark/pages/reaction_time_test_page.dart';
-import 'package:human_benchmark/pages/visual_memory_page.dart';
+import 'package:human_benchmark/pages/games/reaction_time_test_page.dart';
+import 'package:human_benchmark/pages/games/visual_memory_page.dart';
+
+final gameResultCubit = GameResultCubit();
+
+void registerDependencies() {
+  GetIt.I.registerSingleton<GameResultCubit>(gameResultCubit);
+}
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  registerDependencies();
   runApp(MyApp());
 }
 

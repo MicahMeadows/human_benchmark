@@ -1,8 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/chimp_test_result.dart';
+import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
 
 class ChimpTestPage extends StatefulWidget {
   const ChimpTestPage({super.key});
@@ -35,12 +37,16 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void endGame() {
-    context.go(
-      '/chimp_game_result',
-      extra: {
-        'result': ChimpTestResult(sequenceLength: sequenceLength - 1),
-      },
+    GetIt.I<GameResultCubit>().chimpGameOver(
+      ChimpTestResult(sequenceLength: sequenceLength - 1),
     );
+    context.go('/');
+    // context.go(
+    //   '/chimp_game_result',
+    //   extra: {
+    //     'result': ChimpTestResult(sequenceLength: sequenceLength - 1),
+    //   },
+    // );
   }
 
   void failLevel() {
