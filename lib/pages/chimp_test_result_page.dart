@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:human_benchmark/data/chimp_test_result.dart';
+import 'package:human_benchmark/data/model/chimp_test_result.dart';
 
 class ChimpTestResultPage extends StatelessWidget {
   const ChimpTestResultPage({super.key});

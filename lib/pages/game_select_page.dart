@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/utils.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
@@ -49,8 +48,11 @@ class _GameSelectPageState extends State<GameSelectPage> {
                 builder: (context, state) {
                   return state.when(
                     initial: () => Center(child: Text('no game played')),
-                    chimp_result: (result) => Center(
+                    chimpResult: (result) => Center(
                       child: Text('sequence length: ${result.sequenceLength}'),
+                    ),
+                    visualMemoryResult: (result) => Center(
+                      child: Text('tile count: ${result.tileCount}'),
                     ),
                   );
                 },

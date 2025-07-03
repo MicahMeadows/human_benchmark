@@ -1,7 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
+import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
 
 class VisualMemoryPage extends StatefulWidget {
   const VisualMemoryPage({super.key});
@@ -108,6 +111,9 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     });
     await Future.delayed(Duration(seconds: 2));
     if (context.mounted) {
+      GetIt.I<GameResultCubit>().visualMemoryGameOver(
+        VisualMemoryTestResult(tileCount: tileCount - 1),
+      );
       // ignore: use_build_context_synchronously
       context.go('/');
     }
