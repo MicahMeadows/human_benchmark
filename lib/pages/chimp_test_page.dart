@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/data/chimp_test_result.dart';
 
 class ChimpTestPage extends StatefulWidget {
   const ChimpTestPage({super.key});
@@ -12,7 +13,7 @@ class ChimpTestPage extends StatefulWidget {
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
   int lives = 3;
-  int sequenceLength = 3;
+  int sequenceLength = 1;
 
   int calculateGridSize() {
     if (sequenceLength < 5) return 3;
@@ -25,9 +26,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   int get gridSize => calculateGridSize();
 
   List<int> sequencePositions = [];
-  // List<int> sequencePositions = [21, 4, 8];
   int correct = 0;
-  final int initialSequenceLength = 3;
+  final int firstHiddenSequenceLength = 1;
 
   void passLevel() {
     sequenceLength++;
@@ -35,10 +35,12 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void endGame() {
-    context.go('/');
-    // sequenceLength = initialSequenceLength;
-    // lives = 3;
-    // newLevel();
+    context.go(
+      '/chimp_game_result',
+      extra: {
+        'result': ChimpTestResult(sequenceLength: sequenceLength - 1),
+      },
+    );
   }
 
   void failLevel() {
@@ -131,7 +133,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                         ),
                         child: Center(
                           child: Text(
-                            '${sequencePositions.contains(i) && (correct == 0 || sequenceLength == initialSequenceLength) ? sequencePositions.indexOf(i) + 1 : ''}',
+                            '${sequencePositions.contains(i) && (correct == 0 || sequenceLength <= firstHiddenSequenceLength) ? sequencePositions.indexOf(i) + 1 : ''}',
                             style: TextStyle(
                               color: sequencePositions.contains(i)
                                   ? Colors.white
