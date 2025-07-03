@@ -123,7 +123,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   void handleIncorrectTile(int idx) async {
     setState(() {
-      // levelLives--;
+      levelLives--;
     });
     if (levelLives <= 0) {
       setState(() {
