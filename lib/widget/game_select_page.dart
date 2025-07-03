@@ -48,11 +48,14 @@ class _GameSelectPageState extends State<GameSelectPage> {
                 builder: (context, state) {
                   return state.when(
                     initial: () => Center(child: Text('no game played')),
-                    chimpResult: (result) => Center(
+                    chimpTest: (result) => Center(
                       child: Text('sequence length: ${result.sequenceLength}'),
                     ),
-                    visualMemoryResult: (result) => Center(
+                    visualMemoryTest: (result) => Center(
                       child: Text('tile count: ${result.tileCount}'),
+                    ),
+                    reactionTest: (reactionTime) => Center(
+                      child: Text('reaction time: $reactionTime ms'),
                     ),
                   );
                 },

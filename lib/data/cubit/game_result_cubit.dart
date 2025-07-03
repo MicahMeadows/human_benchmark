@@ -9,12 +9,16 @@ part 'game_result_cubit.freezed.dart';
 class GameResultCubit extends Cubit<GameResultState> {
   GameResultCubit() : super(const GameResultState.initial());
 
-  void chimpGameOver(ChimpTestResult result) {
-    emit(GameResultState.setChimpResult(result));
+  void reactionTestOver(int reactionTime) {
+    emit(GameResultState.reactionTest(reactionTime));
   }
 
-  void visualMemoryGameOver(VisualMemoryTestResult result) {
-    emit(GameResultState.setVisualMemoryResult(result));
+  void chimpTestOver(ChimpTestResult result) {
+    emit(GameResultState.chimpTest(result));
+  }
+
+  void visualMemoryTestOver(VisualMemoryTestResult result) {
+    emit(GameResultState.visualMemoryTest(result));
   }
 
   void reset() {

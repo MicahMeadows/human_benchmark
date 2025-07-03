@@ -37,7 +37,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void endGame() {
-    GetIt.I<GameResultCubit>().chimpGameOver(
+    GetIt.I<GameResultCubit>().chimpTestOver(
       ChimpTestResult(sequenceLength: sequenceLength - 1),
     );
     context.go('/');

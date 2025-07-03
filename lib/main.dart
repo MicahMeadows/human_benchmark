@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
-import 'package:human_benchmark/pages/games/chimp_test_page.dart';
-import 'package:human_benchmark/pages/chimp_test_result_page.dart';
-import 'package:human_benchmark/pages/game_select_page.dart';
-import 'package:human_benchmark/pages/games/reaction_time_test_page.dart';
-import 'package:human_benchmark/pages/games/visual_memory_page.dart';
+import 'package:human_benchmark/widget/games/chimp_test_page.dart';
+import 'package:human_benchmark/widget/chimp_test_result_page.dart';
+import 'package:human_benchmark/widget/game_select_page.dart';
+import 'package:human_benchmark/widget/games/reaction_time_test_page.dart';
+import 'package:human_benchmark/widget/games/visual_memory_page.dart';
 
 final gameResultCubit = GameResultCubit();
 

@@ -55,13 +55,14 @@ extension GameResultStatePatterns on GameResultState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _ChimpResult value)?  setChimpResult,TResult Function( _VisualMemoryResult value)?  setVisualMemoryResult,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Initial value)?  initial,TResult Function( _ChimpResult value)?  chimpTest,TResult Function( _ReactionTimeResult value)?  reactionTest,TResult Function( _VisualMemoryResult value)?  visualMemoryTest,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
-return initial(_that);case _ChimpResult() when setChimpResult != null:
-return setChimpResult(_that);case _VisualMemoryResult() when setVisualMemoryResult != null:
-return setVisualMemoryResult(_that);case _:
+return initial(_that);case _ChimpResult() when chimpTest != null:
+return chimpTest(_that);case _ReactionTimeResult() when reactionTest != null:
+return reactionTest(_that);case _VisualMemoryResult() when visualMemoryTest != null:
+return visualMemoryTest(_that);case _:
   return orElse();
 
 }
@@ -79,13 +80,14 @@ return setVisualMemoryResult(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _ChimpResult value)  setChimpResult,required TResult Function( _VisualMemoryResult value)  setVisualMemoryResult,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Initial value)  initial,required TResult Function( _ChimpResult value)  chimpTest,required TResult Function( _ReactionTimeResult value)  reactionTest,required TResult Function( _VisualMemoryResult value)  visualMemoryTest,}){
 final _that = this;
 switch (_that) {
 case _Initial():
 return initial(_that);case _ChimpResult():
-return setChimpResult(_that);case _VisualMemoryResult():
-return setVisualMemoryResult(_that);case _:
+return chimpTest(_that);case _ReactionTimeResult():
+return reactionTest(_that);case _VisualMemoryResult():
+return visualMemoryTest(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -102,13 +104,14 @@ return setVisualMemoryResult(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _ChimpResult value)?  setChimpResult,TResult? Function( _VisualMemoryResult value)?  setVisualMemoryResult,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Initial value)?  initial,TResult? Function( _ChimpResult value)?  chimpTest,TResult? Function( _ReactionTimeResult value)?  reactionTest,TResult? Function( _VisualMemoryResult value)?  visualMemoryTest,}){
 final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
-return initial(_that);case _ChimpResult() when setChimpResult != null:
-return setChimpResult(_that);case _VisualMemoryResult() when setVisualMemoryResult != null:
-return setVisualMemoryResult(_that);case _:
+return initial(_that);case _ChimpResult() when chimpTest != null:
+return chimpTest(_that);case _ReactionTimeResult() when reactionTest != null:
+return reactionTest(_that);case _VisualMemoryResult() when visualMemoryTest != null:
+return visualMemoryTest(_that);case _:
   return null;
 
 }
@@ -125,12 +128,13 @@ return setVisualMemoryResult(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( dynamic ChimpTestResult)?  setChimpResult,TResult Function( dynamic VisualMemoryResult)?  setVisualMemoryResult,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function( dynamic ChimpTestResult)?  chimpTest,TResult Function( int reactionTime)?  reactionTest,TResult Function( dynamic VisualMemoryResult)?  visualMemoryTest,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
-return initial();case _ChimpResult() when setChimpResult != null:
-return setChimpResult(_that.ChimpTestResult);case _VisualMemoryResult() when setVisualMemoryResult != null:
-return setVisualMemoryResult(_that.VisualMemoryResult);case _:
+return initial();case _ChimpResult() when chimpTest != null:
+return chimpTest(_that.ChimpTestResult);case _ReactionTimeResult() when reactionTest != null:
+return reactionTest(_that.reactionTime);case _VisualMemoryResult() when visualMemoryTest != null:
+return visualMemoryTest(_that.VisualMemoryResult);case _:
   return orElse();
 
 }
@@ -148,12 +152,13 @@ return setVisualMemoryResult(_that.VisualMemoryResult);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( dynamic ChimpTestResult)  chimpResult,required TResult Function( dynamic VisualMemoryResult)  visualMemoryResult,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function( dynamic ChimpTestResult)  chimpTest,required TResult Function( int reactionTime)  reactionTest,required TResult Function( dynamic VisualMemoryResult)  visualMemoryTest,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _ChimpResult():
-return chimpResult(_that.ChimpTestResult);case _VisualMemoryResult():
-return visualMemoryResult(_that.VisualMemoryResult);case _:
+return chimpTest(_that.ChimpTestResult);case _ReactionTimeResult():
+return reactionTest(_that.reactionTime);case _VisualMemoryResult():
+return visualMemoryTest(_that.VisualMemoryResult);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -170,12 +175,13 @@ return visualMemoryResult(_that.VisualMemoryResult);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( dynamic ChimpTestResult)?  setChimpResult,TResult? Function( dynamic VisualMemoryResult)?  setVisualMemoryResult,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function( dynamic ChimpTestResult)?  chimpTest,TResult? Function( int reactionTime)?  reactionTest,TResult? Function( dynamic VisualMemoryResult)?  visualMemoryTest,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
-return initial();case _ChimpResult() when setChimpResult != null:
-return setChimpResult(_that.ChimpTestResult);case _VisualMemoryResult() when setVisualMemoryResult != null:
-return setVisualMemoryResult(_that.VisualMemoryResult);case _:
+return initial();case _ChimpResult() when chimpTest != null:
+return chimpTest(_that.ChimpTestResult);case _ReactionTimeResult() when reactionTest != null:
+return reactionTest(_that.reactionTime);case _VisualMemoryResult() when visualMemoryTest != null:
+return visualMemoryTest(_that.VisualMemoryResult);case _:
   return null;
 
 }
@@ -243,7 +249,7 @@ int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(
 
 @override
 String toString() {
-  return 'GameResultState.setChimpResult(ChimpTestResult: $ChimpTestResult)';
+  return 'GameResultState.chimpTest(ChimpTestResult: $ChimpTestResult)';
 }
 
 
@@ -284,6 +290,72 @@ as dynamic,
 /// @nodoc
 
 
+class _ReactionTimeResult implements GameResultState {
+  const _ReactionTimeResult(this.reactionTime);
+  
+
+ final  int reactionTime;
+
+/// Create a copy of GameResultState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ReactionTimeResultCopyWith<_ReactionTimeResult> get copyWith => __$ReactionTimeResultCopyWithImpl<_ReactionTimeResult>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReactionTimeResult&&(identical(other.reactionTime, reactionTime) || other.reactionTime == reactionTime));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,reactionTime);
+
+@override
+String toString() {
+  return 'GameResultState.reactionTest(reactionTime: $reactionTime)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ReactionTimeResultCopyWith<$Res> implements $GameResultStateCopyWith<$Res> {
+  factory _$ReactionTimeResultCopyWith(_ReactionTimeResult value, $Res Function(_ReactionTimeResult) _then) = __$ReactionTimeResultCopyWithImpl;
+@useResult
+$Res call({
+ int reactionTime
+});
+
+
+
+
+}
+/// @nodoc
+class __$ReactionTimeResultCopyWithImpl<$Res>
+    implements _$ReactionTimeResultCopyWith<$Res> {
+  __$ReactionTimeResultCopyWithImpl(this._self, this._then);
+
+  final _ReactionTimeResult _self;
+  final $Res Function(_ReactionTimeResult) _then;
+
+/// Create a copy of GameResultState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? reactionTime = null,}) {
+  return _then(_ReactionTimeResult(
+null == reactionTime ? _self.reactionTime : reactionTime // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
 class _VisualMemoryResult implements GameResultState {
   const _VisualMemoryResult(this.VisualMemoryResult);
   
@@ -309,7 +381,7 @@ int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(
 
 @override
 String toString() {
-  return 'GameResultState.setVisualMemoryResult(VisualMemoryResult: $VisualMemoryResult)';
+  return 'GameResultState.visualMemoryTest(VisualMemoryResult: $VisualMemoryResult)';
 }
 
 

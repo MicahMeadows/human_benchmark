@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
 import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
+import 'package:human_benchmark/widget/flip_tile.dart';
 
 class VisualMemoryPage extends StatefulWidget {
   const VisualMemoryPage({super.key});
@@ -39,18 +40,12 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   Set<int> correctPositions = {};
   GameState gameState = GameState.notStarted;
 
-  Color getTileColor(int index) {
-    if (gameState == GameState.lost) {
-      return Colors.red;
-    } else if (gameState == GameState.finished) {
-      return Colors.green;
-    } else if ((gameState == GameState.preview &&
+  bool getTileRevealed(int index) {
+    return (gameState == GameState.preview &&
             hiddenPositions.contains(index)) ||
-        correctPositions.contains(index)) {
-      return Colors.green;
-    } else {
-      return Colors.blue;
-    }
+        correctPositions.contains(index) ||
+        gameState == GameState.finished ||
+        gameState == GameState.lost;
   }
 
   @override
@@ -61,21 +56,26 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   void startLevel() async {
     levelLives = 3;
-    setState(() {
-      availablePositions = {};
-      hiddenPositions = {};
-      correctPositions = {};
-      for (int i = 0; i < gridSize * gridSize; i++) {
-        availablePositions.add(i);
-      }
-      for (int i = 0; i < tileCount; i++) {
-        int randomAvailableTile = Random().nextInt(availablePositions.length);
-        int element = availablePositions.elementAt(randomAvailableTile);
-        availablePositions.remove(element);
-        hiddenPositions.add(element);
-      }
-      gameState = GameState.preview;
-    });
+    availablePositions = {};
+    hiddenPositions = {};
+    correctPositions = {};
+    for (int i = 0; i < gridSize * gridSize; i++) {
+      availablePositions.add(i);
+    }
+    for (int i = 0; i < tileCount; i++) {
+      int randomAvailableTile = Random().nextInt(availablePositions.length);
+      int element = availablePositions.elementAt(randomAvailableTile);
+      availablePositions.remove(element);
+      hiddenPositions.add(element);
+    }
+    gameState = GameState.notStarted;
+
+    await Future.delayed(Duration(seconds: 2));
+    setState(() {});
+
+    gameState = GameState.preview;
+
+    setState(() {});
 
     await Future.delayed(Duration(seconds: 2));
 
@@ -88,6 +88,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     setState(() {
       gameState = GameState.finished;
     });
+    await Future.delayed(Duration(seconds: 2));
+    gameState = GameState.preview;
     await Future.delayed(Duration(seconds: 2));
     setState(() {
       tileCount++;
@@ -111,7 +113,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     });
     await Future.delayed(Duration(seconds: 2));
     if (context.mounted) {
-      GetIt.I<GameResultCubit>().visualMemoryGameOver(
+      GetIt.I<GameResultCubit>().visualMemoryTestOver(
         VisualMemoryTestResult(tileCount: tileCount - 1),
       );
       // ignore: use_build_context_synchronously
@@ -121,7 +123,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   void handleIncorrectTile(int idx) async {
     setState(() {
-      levelLives--;
+      // levelLives--;
     });
     if (levelLives <= 0) {
       setState(() {
@@ -172,28 +174,16 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                   crossAxisCount: gridSize,
                   children: [
                     for (int i = 0; i < gridSize * gridSize; i++)
-                      InkWell(
+                      FlipTile(
+                        key: ValueKey('${i}}'),
+                        isRevealed: getTileRevealed(i),
                         onTap: () {
                           if (gameState == GameState.playing) {
                             chooseTile(i);
                           }
                         },
-                        child: Container(
-                          margin: EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: getTileColor(i),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                        ),
+                        frontColor: Colors.blue,
+                        backColor: Colors.green,
                       ),
                   ],
                 ),
