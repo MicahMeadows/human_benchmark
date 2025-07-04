@@ -38,6 +38,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   Set<int> availablePositions = {};
   Set<int> hiddenPositions = {};
   Set<int> correctPositions = {};
+  Set<int> wrongGuessPositions = {};
   GameState gameState = GameState.notStarted;
 
   bool getTileRevealed(int index) {
@@ -59,6 +60,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     availablePositions = {};
     hiddenPositions = {};
     correctPositions = {};
+    wrongGuessPositions = {};
     for (int i = 0; i < gridSize * gridSize; i++) {
       availablePositions.add(i);
     }
@@ -121,7 +123,22 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     }
   }
 
+  bool tileIsTappable(int idx) {
+    if (gameState != GameState.playing) {
+      return false;
+    }
+    if (correctPositions.contains(idx)) {
+      return false;
+    }
+    if (wrongGuessPositions.contains(idx)) {
+      return false;
+    }
+    return true;
+  }
+
   void handleIncorrectTile(int idx) async {
+    if (wrongGuessPositions.contains(idx)) return;
+    wrongGuessPositions.add(idx);
     setState(() {
       levelLives--;
     });
@@ -177,13 +194,15 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                       FlipTile(
                         key: ValueKey('${i}}'),
                         isRevealed: getTileRevealed(i),
-                        onTap: () {
-                          if (gameState == GameState.playing) {
-                            chooseTile(i);
-                          }
-                        },
-                        frontColor: Colors.blue,
-                        backColor: Colors.green,
+                        onTap: tileIsTappable(i) == false
+                            ? null
+                            : () => chooseTile(i),
+                        frontColor: wrongGuessPositions.contains(i)
+                            ? Colors.lightBlue.shade900
+                            : Colors.blue,
+                        backColor: gameState == GameState.lost
+                            ? Colors.red
+                            : Colors.green,
                       ),
                   ],
                 ),

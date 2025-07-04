@@ -3,7 +3,7 @@ import 'dart:math';
 
 class FlipTile extends StatefulWidget {
   final bool isRevealed;
-  final VoidCallback onTap;
+  final void Function()? onTap;
   final Color frontColor;
   final Color backColor;
 
