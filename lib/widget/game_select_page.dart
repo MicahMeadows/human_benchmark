@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
+import 'package:human_benchmark/data/cubit/credit_bank/credit_bank_cubit.dart';
+import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
+import 'package:human_benchmark/widget/game_select_button.dart';
 
 class GameSelectPage extends StatefulWidget {
   const GameSelectPage({super.key});
@@ -13,60 +15,81 @@ class GameSelectPage extends StatefulWidget {
 
 class _GameSelectPageState extends State<GameSelectPage> {
   final gameResultCubit = GetIt.I<GameResultCubit>();
-  Widget buildGameButton(String label, String route) {
-    return InkWell(
-      onTap: () {
-        context.go(route);
-      },
-      child: Container(
-        padding: EdgeInsets.all(10),
-        color: Colors.blue,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
+  final creditBankCubit = GetIt.I<CreditBankCubit>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          spacing: 4,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              color: Colors.green,
-              height: 300,
-              width: 600,
-              child: BlocBuilder<GameResultCubit, GameResultState>(
-                bloc: gameResultCubit,
-                builder: (context, state) {
-                  return state.when(
-                    initial: () => Center(child: Text('no game played')),
-                    chimpTest: (result) => Center(
-                      child: Text('sequence length: ${result.sequenceLength}'),
-                    ),
-                    visualMemoryTest: (result) => Center(
-                      child: Text('tile count: ${result.tileCount}'),
-                    ),
-                    reactionTest: (reactionTime) => Center(
-                      child: Text('reaction time: $reactionTime ms'),
-                    ),
-                  );
-                },
-              ),
+      body: BlocBuilder<CreditBankCubit, int>(
+        bloc: creditBankCubit,
+        builder: (context, coins) {
+          return Center(
+            child: Column(
+              spacing: 4,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Text('Credits: $coins'),
+                    Spacer(),
+                  ],
+                ),
+                Container(
+                  color: Colors.green,
+                  height: 300,
+                  width: 600,
+                  child: BlocBuilder<GameResultCubit, GameResultState>(
+                    bloc: gameResultCubit,
+                    builder: (context, state) {
+                      return state.when(
+                        initial: () => Center(child: Text('no game played')),
+                        chimpTest: (result) => Center(
+                          child: Text(
+                            'sequence length: ${result.sequenceLength}',
+                          ),
+                        ),
+                        visualMemoryTest: (result) => Center(
+                          child: Text('tile count: ${result.tileCount}'),
+                        ),
+                        reactionTest: (reactionTime) => Center(
+                          child: Text('reaction time: $reactionTime ms'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 30),
+                GameSelectButton(
+                  gameName: 'Visual Memory',
+                  onTap: coins > 0
+                      ? () {
+                          context.go('/visual_memory_game');
+                          creditBankCubit.subtractCredits(1);
+                        }
+                      : null,
+                ),
+                GameSelectButton(
+                  gameName: 'Chimp Game',
+                  onTap: coins > 0
+                      ? () {
+                          context.go('/chimp_test');
+                          creditBankCubit.subtractCredits(1);
+                        }
+                      : null,
+                ),
+                GameSelectButton(
+                  gameName: 'Reaction Test',
+                  onTap: coins > 0
+                      ? () {
+                          context.go('/reaction_game');
+                          creditBankCubit.subtractCredits(1);
+                        }
+                      : null,
+                ),
+              ],
             ),
-            SizedBox(height: 30),
-            buildGameButton('Visual Memory', '/visual_memory_game'),
-            buildGameButton('Chimp Game', '/chimp_game'),
-            buildGameButton('Reaction Test', '/reaction_game'),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

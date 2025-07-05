@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:human_benchmark/data/cubit/game_result_cubit.dart';
+import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 
 class ReactionTimeTestPage extends StatefulWidget {
   const ReactionTimeTestPage({super.key});
