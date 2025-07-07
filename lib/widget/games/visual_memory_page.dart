@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
 import 'package:human_benchmark/widget/flip_tile.dart';
+import 'package:just_audio/just_audio.dart';
 
 class VisualMemoryPage extends StatefulWidget {
   const VisualMemoryPage({super.key});
@@ -31,6 +32,10 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     return 7;
   }
 
+  final clickPlayer = AudioPlayer();
+  final levelWinPlayer = AudioPlayer();
+  final buzzPlayer = AudioPlayer();
+
   int get gridSize => calculateGridSize();
   int tileCount = 3;
   int lives = 3;
@@ -51,6 +56,10 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   @override
   void initState() {
+    clickPlayer.setAsset('assets/audio/click-click.wav');
+    levelWinPlayer.setAsset('assets/audio/click2.wav');
+    buzzPlayer.setAsset('assets/audio/buzz.wav');
+
     startLevel();
     super.initState();
   }
@@ -86,7 +95,30 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     });
   }
 
+  void playLevelCompleteSound() async {
+    clickPlayer.stop();
+    await clickPlayer.seek(Duration.zero);
+    await clickPlayer.play();
+    await clickPlayer.stop();
+  }
+
+  void playCorrectChoiceSound() async {
+    levelWinPlayer.stop();
+    await levelWinPlayer.seek(Duration.zero);
+    await levelWinPlayer.play();
+    await levelWinPlayer.stop();
+  }
+
+  void playBuzzSound() async {
+    buzzPlayer.stop();
+    await buzzPlayer.seek(Duration.zero);
+    await buzzPlayer.play();
+    await buzzPlayer.stop();
+  }
+
   void winLevel() async {
+    playLevelCompleteSound();
+
     setState(() {
       gameState = GameState.finished;
     });
@@ -106,6 +138,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     });
     if (hiddenPositions.isEmpty) {
       winLevel();
+    } else {
+      playCorrectChoiceSound();
     }
   }
 
@@ -138,6 +172,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   void handleIncorrectTile(int idx) async {
     if (wrongGuessPositions.contains(idx)) return;
+    playBuzzSound();
     wrongGuessPositions.add(idx);
     setState(() {
       levelLives--;
