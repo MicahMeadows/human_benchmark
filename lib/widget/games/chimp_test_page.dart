@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
@@ -25,20 +26,44 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   double cursorYValue = 0;
   double cursorX = 0;
   double cursorY = 0;
-  double sensitivity = 8.0;
+  double sensitivity = 15.0;
   double cursorDiameter = 40;
   Timer? cursorTimer;
+  StreamSubscription<GamepadEvent>? gamepadSubscription;
   static const int gridHeight = 600;
+
+  // Last non-zero joystick direction for filtering tiles
+  double lastDirX = 0;
+  double lastDirY = 0;
+
+  Queue<Offset> recentMovements = Queue<Offset>();
+  Offset averageMovement = Offset.zero;
+
+  Offset normalizeOffset(Offset offset, double len) {
+    double magnitude = offset.distance;
+    if (magnitude < 0.1) return Offset.zero; // Ignore very small movements
+    return offset * (len / magnitude);
+  }
+
+  Offset clampOffset(Offset offset, double max) {
+    return Offset(
+      clampDouble(offset.dx, -max, max),
+      clampDouble(offset.dy, -max, max),
+    );
+  }
 
   void startMovementTimer() {
     cursorTimer?.cancel();
     cursorTimer = Timer.periodic(Duration(milliseconds: 10), (timer) {
       setState(() {
         bool isDiagonal = cursorXValue.abs() > 0.1 && cursorYValue.abs() > 0.1;
-        cursorX =
-            cursorX - (cursorXValue * sensitivity) * (isDiagonal ? 0.707 : 1);
-        cursorY =
-            cursorY + (cursorYValue * sensitivity) * (isDiagonal ? 0.707 : 1);
+        double deltaX =
+            -(cursorXValue * sensitivity) * (isDiagonal ? 0.707 : 1);
+        double deltaY = (cursorYValue * sensitivity) * (isDiagonal ? 0.707 : 1);
+
+        cursorX += deltaX;
+        cursorY += deltaY;
+
         cursorX = clampDouble(
           cursorX,
           cursorDiameter / 2,
@@ -49,6 +74,32 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
           cursorDiameter / 2,
           gridHeight - cursorDiameter / 2,
         );
+
+        if (deltaY.abs() > 0.1 || deltaX.abs() > 0.1) {
+          recentMovements.add(Offset(deltaX, deltaY));
+        }
+
+        if (recentMovements.length > 20) {
+          recentMovements.removeFirst();
+        }
+
+        if (recentMovements.isNotEmpty) {
+          // Calculate average movement vector
+          double sumX = 0;
+          double sumY = 0;
+          for (final movement in recentMovements) {
+            sumX += movement.dx;
+            sumY += movement.dy;
+          }
+          // averageMovement = Offset(
+          //   sumX / recentMovements.length,
+          //   sumY / recentMovements.length,
+          // );
+          averageMovement = Offset(
+            sumX,
+            sumY,
+          );
+        }
       });
     });
   }
@@ -59,10 +110,10 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   int calculateGridSize() {
-    if (sequenceLength < 5) return 3;
-    if (sequenceLength < 7) return 4;
-    if (sequenceLength < 10) return 5;
-    if (sequenceLength < 15) return 6;
+    if (sequenceLength < 5) return 4;
+    if (sequenceLength < 7) return 5;
+    if (sequenceLength < 10) return 6;
+    if (sequenceLength < 15) return 7;
     return 7;
   }
 
@@ -104,6 +155,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void newLevel() {
+    averageMovement = Offset.zero;
+    recentMovements.clear();
     correct = 0;
     Set<int> availablePositions = {};
     for (int i = 0; i < gridSize * gridSize; i++) {
@@ -130,12 +183,13 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   void dispose() {
     super.dispose();
     stopMovementTimer();
+    gamepadSubscription?.cancel();
   }
 
   @override
   void initState() {
     super.initState();
-    Gamepads.events.listen(handleGamepadEvent);
+    gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
     startMovementTimer();
     newLevel();
   }
@@ -329,7 +383,17 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     var centerX = getTileX(tileIdx);
     var centerY = getTileY(tileIdx);
 
+    // Offset clampedAverageMovement = clampOffset(averageMovement, 200.0);
+
+    // final removedVelocityX = centerX - averageMovement.dx;
+    // final removedVelocityY = centerY - averageMovement.dy;
+    // final removedVelocityX = centerX - clampedAverageMovement.dx;
+    // final removedVelocityY = centerY - clampedAverageMovement.dy;
+
     return sqrt(pow(centerX - cursorX, 2) + pow(centerY - cursorY, 2));
+    // return sqrt(
+    //   pow(removedVelocityX - cursorX, 2) + pow(removedVelocityY - cursorY, 2),
+    // );
   }
 
   int? getHoveredTile() {
@@ -420,6 +484,28 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                     ],
                   ),
                 ),
+                // Positioned(
+                //   left:
+                //       (cursorX -
+                //           cursorDiameter / 2 +
+                //           // normalizeOffset(averageMovement, 100).dx) +
+                //           clampOffset(averageMovement, 200.0).dx) +
+                //       cursorDiameter / 4,
+                //   top:
+                //       (cursorY -
+                //           cursorDiameter / 2 +
+                //           // normalizeOffset(averageMovement, 100).dy) +
+                //           clampOffset(averageMovement, 200.0).dy) +
+                //       cursorDiameter / 4,
+                //   child: Container(
+                //     height: cursorDiameter / 2,
+                //     width: cursorDiameter / 2,
+                //     decoration: BoxDecoration(
+                //       color: Colors.red.withValues(alpha: .4),
+                //       borderRadius: BorderRadius.circular(100),
+                //     ),
+                //   ),
+                // ),
                 Positioned(
                   left: cursorX - cursorDiameter / 2,
                   top: cursorY - cursorDiameter / 2,
