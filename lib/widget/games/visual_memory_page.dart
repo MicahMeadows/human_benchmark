@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   final clickPlayer = AudioPlayer();
   final levelWinPlayer = AudioPlayer();
   final buzzPlayer = AudioPlayer();
+  StreamSubscription<GamepadEvent>? gamepadSubscription;
 
   int get gridSize => calculateGridSize();
   int tileCount = 3;
@@ -58,12 +60,18 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   }
 
   @override
+  void dispose() {
+    gamepadSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     clickPlayer.setAsset('assets/audio/click-click.wav');
     levelWinPlayer.setAsset('assets/audio/click2.wav');
     buzzPlayer.setAsset('assets/audio/buzz.wav');
 
-    Gamepads.events.listen(handleGamepadEvent);
+    gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
 
     startLevel();
     super.initState();

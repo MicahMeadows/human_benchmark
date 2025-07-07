@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
   int testsCompleted = 0;
   int totalReactionTimeMs = 0;
   int activeTestId = 0;
+  StreamSubscription<GamepadEvent>? gamepadSubscription;
 
   void startTest() async {
     activeTestId++;
@@ -143,7 +145,13 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
   void initState() {
     super.initState();
 
-    Gamepads.events.listen(handleGamepadEvent);
+    gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
+  }
+
+  @override
+  void dispose() {
+    gamepadSubscription?.cancel();
+    super.dispose();
   }
 
   void handleGamepadEvent(GamepadEvent event) {
