@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
@@ -122,25 +123,46 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
     context.go('/');
   }
 
+  void handleTap() {
+    if (testState == TestState.notStarted ||
+        testState == TestState.early ||
+        testState == TestState.finished) {
+      if (testsCompleted >= numTestsToComplete) {
+        exitGame();
+      } else {
+        startTest();
+      }
+    } else if (testState == TestState.ready) {
+      registerCorrectClick();
+    } else if (testState == TestState.started) {
+      registerEarlyClick();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    Gamepads.events.listen(handleGamepadEvent);
+  }
+
+  void handleGamepadEvent(GamepadEvent event) {
+    if (event.type == KeyType.button) {
+      if (event.key == 'y.circle') {
+        if (event.value == 0) {
+          handleTap();
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: InkWell(
           onTap: () {
-            if (testState == TestState.notStarted ||
-                testState == TestState.early ||
-                testState == TestState.finished) {
-              if (testsCompleted >= numTestsToComplete) {
-                exitGame();
-              } else {
-                startTest();
-              }
-            } else if (testState == TestState.ready) {
-              registerCorrectClick();
-            } else if (testState == TestState.started) {
-              registerEarlyClick();
-            }
+            handleTap();
           },
           child: Container(
             alignment: Alignment.center,

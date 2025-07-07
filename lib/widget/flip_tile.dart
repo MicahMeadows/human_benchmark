@@ -28,8 +28,10 @@ class _FlipTileState extends State<FlipTile>
   void initState() {
     super.initState();
 
+    // int randomDuration = Random().nextInt(300) + 200;
+
     _controller = AnimationController(
-      duration: Duration(milliseconds: 400),
+      // duration: Duration(milliseconds: randomDuration),
       vsync: this,
       value: widget.isRevealed ? 1.0 : 0.0, // Set initial position
     );
@@ -44,6 +46,8 @@ class _FlipTileState extends State<FlipTile>
     super.didUpdateWidget(oldWidget);
 
     if (widget.isRevealed != oldWidget.isRevealed) {
+      var randomDuration = Random().nextInt(300) + 200;
+      _controller.duration = Duration(milliseconds: randomDuration);
       if (widget.isRevealed) {
         _controller.forward();
       } else {
