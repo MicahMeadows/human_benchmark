@@ -71,8 +71,6 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   }
 
   void changeMousePos(int dX, int dY) {
-    if (gameState != GameState.playing) return;
-
     setState(() {
       activeX = activeX + dX;
       activeY = activeY + dY;
@@ -125,8 +123,6 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   }
 
   void startLevel() async {
-    activeX = 0;
-    activeY = 0;
     levelLives = 3;
     availablePositions = {};
     hiddenPositions = {};
