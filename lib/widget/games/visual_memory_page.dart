@@ -123,7 +123,6 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   void confirmTile() {
     final int tileIdx = mouseX + (mouseY * gridSize);
-    print('Confirm tile: $tileIdx');
     if (tileIsTappable(tileIdx)) {
       chooseTile(tileIdx);
     }
