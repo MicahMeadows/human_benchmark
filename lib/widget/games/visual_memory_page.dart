@@ -46,8 +46,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   Set<int> correctPositions = {};
   Set<int> wrongGuessPositions = {};
   GameState gameState = GameState.notStarted;
-  int activeX = 0;
-  int activeY = 0;
+  int mouseX = 0;
+  int mouseY = 0;
 
   bool getTileRevealed(int index) {
     return (gameState == GameState.preview &&
@@ -64,7 +64,6 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     buzzPlayer.setAsset('assets/audio/buzz.wav');
 
     Gamepads.events.listen(handleGamepadEvent);
-    print('Gamepad events listening started');
 
     startLevel();
     super.initState();
@@ -72,18 +71,18 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
 
   void changeMousePos(int dX, int dY) {
     setState(() {
-      activeX = activeX + dX;
-      activeY = activeY + dY;
+      mouseX = mouseX + dX;
+      mouseY = mouseY + dY;
 
-      if (activeX < 0) {
-        activeX = gridSize - 1;
-      } else if (activeX >= gridSize) {
-        activeX = 0;
+      if (mouseX < 0) {
+        mouseX = gridSize - 1;
+      } else if (mouseX >= gridSize) {
+        mouseX = 0;
       }
-      if (activeY < 0) {
-        activeY = gridSize - 1;
-      } else if (activeY >= gridSize) {
-        activeY = 0;
+      if (mouseY < 0) {
+        mouseY = gridSize - 1;
+      } else if (mouseY >= gridSize) {
+        mouseY = 0;
       }
     });
   }
@@ -115,7 +114,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   }
 
   void confirmTile() {
-    final int tileIdx = activeX + (activeY * gridSize);
+    final int tileIdx = mouseX + (mouseY * gridSize);
     print('Confirm tile: $tileIdx');
     if (tileIsTappable(tileIdx)) {
       chooseTile(tileIdx);
@@ -288,11 +287,11 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                         isHovered: () {
                           var x = i % gridSize;
                           var y = (i / gridSize).floor();
-                          if (gameState == GameState.playing) {
-                            if (activeX == x && activeY == y) {
-                              return true;
-                            }
+                          // if (gameState == GameState.playing) {
+                          if (mouseX == x && mouseY == y) {
+                            return true;
                           }
+                          // }
 
                           return false;
                         }(),
