@@ -6,9 +6,11 @@ class FlipTile extends StatefulWidget {
   final void Function()? onTap;
   final Color frontColor;
   final Color backColor;
+  final bool isHovered;
 
   const FlipTile({
     super.key,
+    required this.isHovered,
     required this.isRevealed,
     required this.onTap,
     required this.frontColor,
@@ -28,10 +30,7 @@ class _FlipTileState extends State<FlipTile>
   void initState() {
     super.initState();
 
-    // int randomDuration = Random().nextInt(300) + 200;
-
     _controller = AnimationController(
-      // duration: Duration(milliseconds: randomDuration),
       vsync: this,
       value: widget.isRevealed ? 1.0 : 0.0, // Set initial position
     );
@@ -78,6 +77,12 @@ class _FlipTileState extends State<FlipTile>
             child: Container(
               decoration: BoxDecoration(
                 color: displayColor,
+                border: widget.isHovered
+                    ? Border.all(
+                        color: Colors.black,
+                        width: 4,
+                      )
+                    : null,
                 borderRadius: BorderRadius.circular(8),
               ),
               margin: const EdgeInsets.all(6),

@@ -72,7 +72,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
                   gameName: 'Chimp Game',
                   onTap: coins > 0
                       ? () {
-                          context.go('/chimp_test');
+                          context.go('/chimp_game');
                           creditBankCubit.subtractCredits(1);
                         }
                       : null,

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
@@ -45,6 +46,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   Set<int> correctPositions = {};
   Set<int> wrongGuessPositions = {};
   GameState gameState = GameState.notStarted;
+  int activeX = 0;
+  int activeY = 0;
 
   bool getTileRevealed(int index) {
     return (gameState == GameState.preview &&
@@ -60,11 +63,70 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     levelWinPlayer.setAsset('assets/audio/click2.wav');
     buzzPlayer.setAsset('assets/audio/buzz.wav');
 
+    Gamepads.events.listen(handleGamepadEvent);
+    print('Gamepad events listening started');
+
     startLevel();
     super.initState();
   }
 
+  void changeMousePos(int dX, int dY) {
+    if (gameState != GameState.playing) return;
+
+    setState(() {
+      activeX = activeX + dX;
+      activeY = activeY + dY;
+
+      if (activeX < 0) {
+        activeX = gridSize - 1;
+      } else if (activeX >= gridSize) {
+        activeX = 0;
+      }
+      if (activeY < 0) {
+        activeY = gridSize - 1;
+      } else if (activeY >= gridSize) {
+        activeY = 0;
+      }
+    });
+  }
+
+  void handleGamepadEvent(GamepadEvent event) {
+    // print('type: ${event.type}, key: ${event.key}, value: ${event.value}');
+    if (event.type == KeyType.button) {
+      if (event.key == 'y.circle') {
+        if (event.value == 0) {
+          confirmTile();
+        }
+      }
+    }
+    if (event.type == KeyType.analog) {
+      if (event.key == 'l.joystick - yAxis') {
+        if (event.value <= -.95) {
+          changeMousePos(0, -1);
+        } else if (event.value >= .95) {
+          changeMousePos(0, 1);
+        }
+      } else if (event.key == 'l.joystick - xAxis') {
+        if (event.value <= -.95) {
+          changeMousePos(1, 0);
+        } else if (event.value >= .95) {
+          changeMousePos(-1, 0);
+        }
+      }
+    }
+  }
+
+  void confirmTile() {
+    final int tileIdx = activeX + (activeY * gridSize);
+    print('Confirm tile: $tileIdx');
+    if (tileIsTappable(tileIdx)) {
+      chooseTile(tileIdx);
+    }
+  }
+
   void startLevel() async {
+    activeX = 0;
+    activeY = 0;
     levelLives = 3;
     availablePositions = {};
     hiddenPositions = {};
@@ -227,6 +289,17 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                   children: [
                     for (int i = 0; i < gridSize * gridSize; i++)
                       FlipTile(
+                        isHovered: () {
+                          var x = i % gridSize;
+                          var y = (i / gridSize).floor();
+                          if (gameState == GameState.playing) {
+                            if (activeX == x && activeY == y) {
+                              return true;
+                            }
+                          }
+
+                          return false;
+                        }(),
                         key: ValueKey('${i}}'),
                         isRevealed: getTileRevealed(i),
                         onTap: tileIsTappable(i) == false
