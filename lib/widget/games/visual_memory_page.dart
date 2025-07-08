@@ -129,7 +129,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     }
   }
 
-  void startLevel() async {
+  Future<void> startLevel() async {
     levelLives = 3;
     availablePositions = {};
     hiddenPositions = {};
@@ -188,15 +188,16 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
       gameState = GameState.finished;
     });
     await Future.delayed(Duration(seconds: 2));
-    gameState = GameState.preview;
-    await Future.delayed(Duration(seconds: 2));
     setState(() {
       tileCount++;
-      startLevel();
     });
+    await startLevel();
   }
 
   void handleCorrectTile(int idx) {
+    if (gameState != GameState.playing) {
+      return; // avoid double win or win during other states
+    }
     setState(() {
       hiddenPositions.remove(idx);
       correctPositions.add(idx);
@@ -253,7 +254,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
         handleGameLose();
       } else {
         await Future.delayed(Duration(seconds: 2));
-        startLevel();
+        await startLevel();
       }
     }
   }
