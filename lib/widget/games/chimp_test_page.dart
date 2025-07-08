@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
+import 'package:just_audio/just_audio.dart';
 
 class ChimpTestPage extends StatefulWidget {
   const ChimpTestPage({super.key});
@@ -18,7 +19,11 @@ class ChimpTestPage extends StatefulWidget {
 }
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
+  final clickPlayer = AudioPlayer();
+  final levelWinPlayer = AudioPlayer();
+  final buzzPlayer = AudioPlayer();
   int lives = 3;
+  int progress = 0;
   int sequenceLength = 1;
   int mouseX = 0;
   int mouseY = 0;
@@ -110,10 +115,10 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   int calculateGridSize() {
-    if (sequenceLength < 5) return 4;
-    if (sequenceLength < 7) return 5;
-    if (sequenceLength < 10) return 6;
-    if (sequenceLength < 15) return 7;
+    if (sequenceLength < 5) return 3;
+    if (sequenceLength < 7) return 4;
+    if (sequenceLength < 10) return 5;
+    if (sequenceLength < 15) return 6;
     return 7;
   }
 
@@ -123,8 +128,33 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   int correct = 0;
   final int firstHiddenSequenceLength = 1;
 
+  void playLevelCompleteSound() async {
+    clickPlayer.stop();
+    await clickPlayer.seek(Duration.zero);
+    await clickPlayer.play();
+    await clickPlayer.stop();
+  }
+
+  void playCorrectChoiceSound() async {
+    levelWinPlayer.stop();
+    await levelWinPlayer.seek(Duration.zero);
+    await levelWinPlayer.play();
+    await levelWinPlayer.stop();
+  }
+
+  void playBuzzSound() async {
+    buzzPlayer.stop();
+    await buzzPlayer.seek(Duration.zero);
+    await buzzPlayer.play();
+    await buzzPlayer.stop();
+  }
+
   void passLevel() {
-    sequenceLength++;
+    progress++;
+    if (sequenceLength < 3 || progress >= 3) {
+      sequenceLength++;
+      progress = 0;
+    }
     newLevel();
   }
 
@@ -189,6 +219,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   @override
   void initState() {
     super.initState();
+    clickPlayer.setAsset('assets/audio/click-click.wav');
+    levelWinPlayer.setAsset('assets/audio/click2.wav');
+    buzzPlayer.setAsset('assets/audio/buzz.wav');
     gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
     startMovementTimer();
     newLevel();
@@ -328,7 +361,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   // Initialize the game with a new level
   void handleGamepadEvent(GamepadEvent event) {
     if (event.type == KeyType.button) {
-      if (event.key == 'y.circle') {
+      // print('type: ${event.type}, key: ${event.key}, value: ${event.value}');
+      if (['y.circle', 'l1.rectangle.roundedbottom'].contains(event.key)) {
+        // if (event.key == 'y.circle') {
         if (event.value == 0) {
           confirmTile();
         }
@@ -358,11 +393,15 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       setState(() {
         correct++;
         if (correct == sequenceLength) {
+          playLevelCompleteSound();
           passLevel();
+        } else {
+          playCorrectChoiceSound();
         }
       });
     } else {
       if (correct > 0) {
+        playBuzzSound();
         // dont fail if click wrong tile first
         failLevel();
       }
@@ -459,7 +498,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                               border: isHovered(i)
                                   ? Border.all(
                                       color: Colors.black,
-                                      width: 4,
+                                      width: 6,
                                     )
                                   : null,
                               color: sequencePositions.contains(i)

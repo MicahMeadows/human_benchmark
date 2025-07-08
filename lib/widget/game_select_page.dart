@@ -54,7 +54,8 @@ class _GameSelectPageState extends State<GameSelectPage> {
 
   void handleGamepadEvent(GamepadEvent event) {
     if (event.type == KeyType.button) {
-      if (event.key == 'y.circle') {
+      // if (event.key == 'y.circle') {
+      if (['y.circle', 'l1.rectangle.roundedbottom'].contains(event.key)) {
         if (event.value == 0) {
           confirmSelection();
         }

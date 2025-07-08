@@ -98,7 +98,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   void handleGamepadEvent(GamepadEvent event) {
     // print('type: ${event.type}, key: ${event.key}, value: ${event.value}');
     if (event.type == KeyType.button) {
-      if (event.key == 'y.circle') {
+      if (['y.circle', 'l1.rectangle.roundedbottom'].contains(event.key)) {
+        // if (event.key == 'y.circle') {
         if (event.value == 0) {
           confirmTile();
         }
