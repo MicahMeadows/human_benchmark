@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:just_audio/just_audio.dart';
@@ -19,9 +20,12 @@ class ChimpTestPage extends StatefulWidget {
 }
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
+  bool canClick = true;
   final clickPlayer = AudioPlayer();
   final levelWinPlayer = AudioPlayer();
   final buzzPlayer = AudioPlayer();
+  int lastSelectionTime = 0;
+  Duration selectionDelay = Duration(milliseconds: 200);
   int lives = 3;
   int progress = 0;
   int sequenceLength = 1;
@@ -117,9 +121,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   int calculateGridSize() {
     if (sequenceLength < 5) return 3;
     if (sequenceLength < 7) return 4;
-    if (sequenceLength < 10) return 5;
-    if (sequenceLength < 15) return 6;
-    return 7;
+    if (sequenceLength < 10) return 4;
+    if (sequenceLength < 15) return 5;
+    return 6;
   }
 
   int get gridSize => calculateGridSize();
@@ -152,14 +156,17 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   void passLevel() {
     progress++;
     if (sequenceLength < 3 || progress >= 3) {
-      sequenceLength++;
       progress = 0;
+      newLevel(1);
     }
-    newLevel();
+    newLevel(0);
   }
 
   void endGame() {
     GetIt.I<GameResultCubit>().chimpTestOver(
+      ChimpTestResult(sequenceLength: sequenceLength - 1),
+    );
+    GetIt.I<RecordsCubit>().saveChimpGameResult(
       ChimpTestResult(sequenceLength: sequenceLength - 1),
     );
     context.go('/');
@@ -171,7 +178,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       endGame();
       return;
     }
-    newLevel();
+    newLevel(0);
   }
 
   void setMouseToIdx(int idx) {
@@ -184,7 +191,16 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     });
   }
 
-  void newLevel() {
+  Future<void> gracePeriod(int ms) async {
+    canClick = false;
+    await Future.delayed(Duration(milliseconds: ms));
+    canClick = true;
+  }
+
+  void newLevel(int sequenceChange) async {
+    await gracePeriod(1000);
+    sequenceLength += sequenceChange;
+
     averageMovement = Offset.zero;
     recentMovements.clear();
     correct = 0;
@@ -207,6 +223,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       getTileX(sequencePositions[0]),
       getTileY(sequencePositions[0]),
     );
+    await gracePeriod(100);
   }
 
   @override
@@ -224,7 +241,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     buzzPlayer.setAsset('assets/audio/buzz.wav');
     gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
     startMovementTimer();
-    newLevel();
+    newLevel(0);
   }
 
   void setCursorPos(double x, double y) {
@@ -243,10 +260,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void confirmTile() {
-    // int tileIdx = mouseX + mouseY * gridSize;
-    // if (!sequencePositions.contains(tileIdx)) return;
-    final tileIdx = getHoveredTile();
+    if (!canClick) return;
 
+    final tileIdx = getHoveredTile();
     if (tileIdx == null || !sequencePositions.contains(tileIdx)) return;
 
     selectTile(tileIdx);
@@ -389,6 +405,14 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void selectTile(int pos) {
+    if (DateTime.now().millisecondsSinceEpoch - lastSelectionTime <
+        selectionDelay.inMilliseconds) {
+      // Prevent double clicks
+      return;
+    } else {
+      lastSelectionTime = DateTime.now().millisecondsSinceEpoch;
+    }
+    if (!canClick) return;
     if (sequencePositions[correct] == pos) {
       setState(() {
         correct++;
@@ -452,7 +476,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   bool isHovered(int idx) {
-    return getHoveredTile() == idx;
+    if (!canClick) return false;
+    if (getHoveredTile() == idx) return true;
+    return false;
   }
 
   @override
@@ -523,28 +549,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                     ],
                   ),
                 ),
-                // Positioned(
-                //   left:
-                //       (cursorX -
-                //           cursorDiameter / 2 +
-                //           // normalizeOffset(averageMovement, 100).dx) +
-                //           clampOffset(averageMovement, 200.0).dx) +
-                //       cursorDiameter / 4,
-                //   top:
-                //       (cursorY -
-                //           cursorDiameter / 2 +
-                //           // normalizeOffset(averageMovement, 100).dy) +
-                //           clampOffset(averageMovement, 200.0).dy) +
-                //       cursorDiameter / 4,
-                //   child: Container(
-                //     height: cursorDiameter / 2,
-                //     width: cursorDiameter / 2,
-                //     decoration: BoxDecoration(
-                //       color: Colors.red.withValues(alpha: .4),
-                //       borderRadius: BorderRadius.circular(100),
-                //     ),
-                //   ),
-                // ),
+
                 Positioned(
                   left: cursorX - cursorDiameter / 2,
                   top: cursorY - cursorDiameter / 2,

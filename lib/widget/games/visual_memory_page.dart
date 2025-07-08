@@ -6,6 +6,7 @@ import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
+import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
 import 'package:human_benchmark/widget/flip_tile.dart';
 import 'package:just_audio/just_audio.dart';
@@ -216,6 +217,9 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     await Future.delayed(Duration(seconds: 2));
     if (context.mounted) {
       GetIt.I<GameResultCubit>().visualMemoryTestOver(
+        VisualMemoryTestResult(tileCount: tileCount - 1),
+      );
+      GetIt.I<RecordsCubit>().saveVisualMemoryGameResult(
         VisualMemoryTestResult(tileCount: tileCount - 1),
       );
       // ignore: use_build_context_synchronously

@@ -43,6 +43,9 @@ dependencies:
   get_it: ^8.0.3
   just_audio: ^0.10.4
   gamepads: ^0.1.7
+  shared_preferences: ^2.5.3
+  json_annotation: ^4.9.0
+  json_serializable: ^6.9.5
 
 dev_dependencies:
   flutter_test:

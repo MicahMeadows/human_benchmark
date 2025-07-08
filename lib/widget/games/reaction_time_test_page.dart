@@ -6,6 +6,8 @@ import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
+import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
+import 'package:human_benchmark/data/model/reaction_test_result.dart';
 
 class ReactionTimeTestPage extends StatefulWidget {
   const ReactionTimeTestPage({super.key});
@@ -65,8 +67,10 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
       totalReactionTimeMs += lastReactionMs;
       testsCompleted++;
       if (testsCompleted == numTestsToComplete) {
-        GetIt.I<GameResultCubit>().reactionTestOver(
-          totalReactionTimeMs ~/ numTestsToComplete,
+        int averageTimeMs = totalReactionTimeMs ~/ numTestsToComplete;
+        GetIt.I<GameResultCubit>().reactionTestOver(averageTimeMs);
+        GetIt.I<RecordsCubit>().saveReactionGameResult(
+          ReactionTestResult(averageMs: averageTimeMs),
         );
         context.go('/');
       } else {
