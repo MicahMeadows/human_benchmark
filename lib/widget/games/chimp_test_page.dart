@@ -10,7 +10,6 @@ import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
-import 'package:human_benchmark/widget/animated_score.dart';
 import 'package:just_audio/just_audio.dart';
 
 class ChimpTestPage extends StatefulWidget {
@@ -21,9 +20,9 @@ class ChimpTestPage extends StatefulWidget {
 }
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
-  final GlobalKey scoreKey = GlobalKey();
-  final GlobalKey stackKey = GlobalKey();
-  List<Widget> scorePopups = [];
+  List<OverlayEntry> overlayEntries = [];
+  List<GlobalKey> tileKeys = [];
+  GlobalKey scoreGlobalKey = GlobalKey();
 
   int totalScore = 0;
   int totalBonusPoints = 0;
@@ -89,30 +88,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     );
   }
 
-  void addAnimatedScore(Offset from, int scoreValue) {
-    final renderBox = stackKey.currentContext?.findRenderObject() as RenderBox?;
-    final scoreBox = scoreKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null || scoreBox == null) return;
-
-    final fromGlobal = renderBox.globalToLocal(from);
-    final toGlobal = renderBox.globalToLocal(
-      scoreBox.localToGlobal(Offset.zero),
-    );
-
-    final animation = AnimatedScore(
-      startPosition: fromGlobal,
-      endPosition: toGlobal,
-      scoreText: '+$scoreValue',
-      onComplete: () {
-        setState(() => scorePopups.removeAt(0));
-      },
-    );
-
-    setState(() {
-      scorePopups.add(animation);
-    });
-  }
-
   void startMovementTimer() {
     cursorTimer?.cancel();
     cursorTimer = Timer.periodic(Duration(milliseconds: 10), (timer) {
@@ -152,10 +127,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
             sumX += movement.dx;
             sumY += movement.dy;
           }
-          // averageMovement = Offset(
-          //   sumX / recentMovements.length,
-          //   sumY / recentMovements.length,
-          // );
+
           averageMovement = Offset(
             sumX,
             sumY,
@@ -266,6 +238,11 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   void newLevel(int sequenceChange) async {
     await gracePeriod(1000);
     sequenceLength += sequenceChange;
+
+    tileKeys.clear();
+    for (int i = 0; i < gridSize * gridSize; i++) {
+      tileKeys.add(GlobalKey());
+    }
 
     averageMovement = Offset.zero;
     recentMovements.clear();
@@ -434,10 +411,113 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     }
   }
 
-  void animateScore(int score) {}
+  void animateScoreFrom({
+    required Offset startOffset,
+    required Offset endOffset,
+    required int score,
+  }) {
+    final duration = Duration(milliseconds: Random().nextInt(400) + 400);
+    final overlay = Overlay.of(context);
+
+    // Pick a control point above the mid-point to create an arc
+    final midPoint = Offset.lerp(startOffset, endOffset, 0.5)!;
+
+    final arcHeight = 100 + Random().nextDouble() * 100; // vertical curve
+    final arcDirection = (Random().nextBool() ? 1 : -1); // left or right
+    final arcWidth = Random().nextDouble() * 100 * arcDirection;
+
+    final controlOffset = midPoint + Offset(arcWidth, -arcHeight);
+
+    final curveOptions = [
+      Curves.easeInOut,
+      Curves.easeOutBack,
+      Curves.fastOutSlowIn,
+      Curves.decelerate,
+    ];
+    final randomCurve = curveOptions[Random().nextInt(curveOptions.length)];
+
+    final randomScaleStart = Random().nextDouble() * 0.1 + 0.5; // 0.5–0.6
+    final randomScaleEnd = Random().nextDouble() * 0.5 + 1.0; // 1.0–1.5
+
+    Offset getQuadraticBezierPoint(double t, Offset p0, Offset p1, Offset p2) {
+      final oneMinusT = 1 - t;
+      final x =
+          oneMinusT * oneMinusT * p0.dx +
+          2 * oneMinusT * t * p1.dx +
+          t * t * p2.dx;
+      final y =
+          oneMinusT * oneMinusT * p0.dy +
+          2 * oneMinusT * t * p1.dy +
+          t * t * p2.dy;
+      return Offset(x, y);
+    }
+
+    final entry = OverlayEntry(
+      builder: (ctx) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: duration,
+          curve: randomCurve,
+          builder: (context, t, child) {
+            final curvedOffset = getQuadraticBezierPoint(
+              t,
+              startOffset,
+              controlOffset,
+              endOffset,
+            );
+            final scale = lerpDouble(randomScaleStart, randomScaleEnd, t)!;
+
+            return Positioned(
+              top: curvedOffset.dy,
+              left: curvedOffset.dx,
+              child: Transform.scale(
+                scale: scale,
+                child: child,
+              ),
+            );
+          },
+          child: Material(
+            color: Colors.transparent,
+            child: Text(
+              '+$score',
+              style: const TextStyle(
+                fontSize: 32,
+                color: Colors.greenAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(duration, () => entry.remove());
+  }
+
+  void animateScore(int pos, int score) {
+    final key = tileKeys[pos];
+    final context = key.currentContext;
+    if (context != null) {
+      final box = context.findRenderObject() as RenderBox;
+      final offset = box.localToGlobal(Offset.zero);
+
+      final scoreContext = scoreGlobalKey.currentContext;
+      if (scoreContext != null) {
+        final scoreBox = scoreContext.findRenderObject() as RenderBox;
+        final scoreOffset = scoreBox.localToGlobal(Offset.zero);
+        // Use the score offset as the end position
+        animateScoreFrom(
+          startOffset: offset,
+          endOffset: scoreOffset,
+          score: score,
+        );
+      }
+    }
+  }
 
   void addScore(int score) {
-    animateScore(score);
     setState(() {
       totalScore += score;
     });
@@ -457,24 +537,20 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     lastSelectionTime = DateTime.now().millisecondsSinceEpoch;
     if (!canClick) return;
 
-    RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-    Offset globalPos = Offset.zero;
-    if (renderBox != null) {
-      final tileX = getTileX(pos);
-      final tileY = getTileY(pos);
-      globalPos = renderBox.localToGlobal(Offset(tileX, tileY));
-    }
-
     if (sequencePositions[correct] == pos) {
+      // Get screen position
+
       setState(() {
         correct++;
-        int scoreToAdd = correct == sequenceLength ? 200 : 100;
-        addScore(scoreToAdd);
-        addAnimatedScore(globalPos, scoreToAdd);
         if (correct == sequenceLength) {
+          print('correct: $correct, sequenceLength: $sequenceLength');
+          addScore(200);
+          animateScore(pos, 200);
           playLevelCompleteSound();
           passLevel();
         } else {
+          addScore(100);
+          animateScore(pos, 100);
           playCorrectChoiceSound();
         }
       });
@@ -561,6 +637,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                     ),
                     SizedBox(width: 25),
                     Text(
+                      key: scoreGlobalKey,
                       '$totalScore',
                       style: TextStyle(
                         color: Color(0xFF03DAC6),
@@ -629,6 +706,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                                     selectTile(i);
                                   },
                             child: Container(
+                              key: tileKeys.length > i ? tileKeys[i] : null,
                               margin: EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
