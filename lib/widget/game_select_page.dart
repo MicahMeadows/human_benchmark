@@ -54,15 +54,32 @@ class _GameSelectPageState extends State<GameSelectPage> {
     super.initState();
   }
 
+  void acceptCoin() {
+    setState(() {
+      creditBankCubit.addCredits(1);
+    });
+  }
+
   void handleGamepadEvent(GamepadEvent event) {
     if (event.type == KeyType.button) {
-      // if (event.key == 'y.circle') {
+      print('Button event: ${event.key} - ${event.value}');
+
+      // handle select button
       if (['y.circle', 'l1.rectangle.roundedbottom'].contains(event.key)) {
         if (event.value == 0) {
           confirmSelection();
         }
       }
+
+      // handle coin button
+      if (['r2.rectangle.roundedtop'].contains(event.key)) {
+        if (event.value == 1) {
+          acceptCoin();
+        }
+      }
     }
+
+    // handle joystick movement
     if (event.type == KeyType.analog) {
       if (event.key == 'l.joystick - yAxis') {
         handleJoyYMove(event.value);

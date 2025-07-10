@@ -20,6 +20,13 @@ class ChimpTestPage extends StatefulWidget {
 }
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
+  int totalScore = 0;
+  int totalBonusPoints = 0;
+  int countdownValue = 10;
+  int bonusCountdown = 1000;
+  bool isCountingDown = false;
+  Timer? countdownTimer;
+
   bool canClick = true;
   final clickPlayer = AudioPlayer();
   final levelWinPlayer = AudioPlayer();
@@ -160,18 +167,28 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void passLevel() {
+    countdownTimer?.cancel();
     setState(() {
       lives = 3;
+      totalScore += bonusCountdown;
+      bonusCountdown = 0;
+      isCountingDown = false;
     });
+
     progress++;
     if (sequenceLength < 3 || progress >= 3) {
       progress = 0;
       newLevel(1);
+    } else {
+      newLevel(0);
     }
-    newLevel(0);
   }
 
   void endGame() {
+    countdownTimer?.cancel();
+    setState(() {
+      isCountingDown = false;
+    });
     GetIt.I<GameResultCubit>().chimpTestOver(
       ChimpTestResult(sequenceLength: sequenceLength - 1),
     );
@@ -182,6 +199,10 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void failLevel() {
+    countdownTimer?.cancel();
+    setState(() {
+      isCountingDown = false;
+    });
     lives--;
     if (lives <= 0) {
       endGame();
@@ -194,6 +215,23 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     canClick = false;
     await Future.delayed(Duration(milliseconds: ms));
     canClick = true;
+  }
+
+  void startBonusCountdown() {
+    bonusCountdown = 1000;
+    isCountingDown = true;
+
+    countdownTimer?.cancel();
+    countdownTimer = Timer.periodic(Duration(milliseconds: 50), (timer) {
+      if (bonusCountdown <= 0) {
+        bonusCountdown = 0;
+        timer.cancel();
+      } else {
+        setState(() {
+          bonusCountdown -= 10;
+        });
+      }
+    });
   }
 
   void newLevel(int sequenceChange) async {
@@ -222,6 +260,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       getTileY(sequencePositions[0]),
     );
     await gracePeriod(100);
+    startBonusCountdown();
   }
 
   @override
@@ -462,6 +501,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                   Icon(Icons.favorite, color: Colors.red, size: 30),
               ],
             ),
+            Text('score: ${totalScore}'),
+            Text('bonus: ${bonusCountdown}'),
             Spacer(),
             Stack(
               children: [
