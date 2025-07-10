@@ -25,17 +25,35 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   final levelWinPlayer = AudioPlayer();
   final buzzPlayer = AudioPlayer();
   int lastSelectionTime = 0;
-  static const int gridHeight = 700;
+  int calculateGridHeight() {
+    if (sequenceLength < 5) return 500;
+    if (sequenceLength < 7) return 600;
+    if (sequenceLength < 11) return 800;
+    if (sequenceLength < 15) return 800;
+    return 800;
+  }
+
+  int get gridHeight => calculateGridHeight();
+
+  int calculateGridSize() {
+    if (sequenceLength < 5) return 3;
+    if (sequenceLength < 7) return 4;
+    if (sequenceLength < 11) return 5;
+    if (sequenceLength < 15) return 6;
+    return 6;
+  }
+
+  int get gridSize => calculateGridSize();
   Duration selectionDelay = Duration(milliseconds: 100);
   int lives = 3;
   int progress = 0;
   int sequenceLength = 1;
   static const double cursorDiameter = 40;
-  double cursorX = (gridHeight / 2) - (cursorDiameter / 2);
-  double cursorY = (gridHeight / 2) + (cursorDiameter / 2);
+  late double cursorX = (gridHeight / 2) - (cursorDiameter / 2);
+  late double cursorY = (gridHeight / 2) + (cursorDiameter / 2);
   double cursorXValue = 0;
   double cursorYValue = 0;
-  double sensitivity = 15.0;
+  double sensitivity = 25.0;
   Timer? cursorTimer;
   StreamSubscription<GamepadEvent>? gamepadSubscription;
 
@@ -115,16 +133,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     cursorTimer?.cancel();
     cursorTimer = null;
   }
-
-  int calculateGridSize() {
-    if (sequenceLength < 5) return 3;
-    if (sequenceLength < 7) return 4;
-    if (sequenceLength < 11) return 5;
-    if (sequenceLength < 15) return 6;
-    return 6;
-  }
-
-  int get gridSize => calculateGridSize();
 
   List<int> sequencePositions = [];
   int correct = 0;
@@ -446,6 +454,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -453,14 +462,11 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                   Icon(Icons.favorite, color: Colors.red, size: 30),
               ],
             ),
+            Spacer(),
             Stack(
               children: [
                 Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: BoxBorder.all(color: Colors.black, width: 2),
-                    color: Colors.white,
-                  ),
+                  decoration: BoxDecoration(),
                   height: gridHeight.toDouble(),
                   width: gridHeight.toDouble(),
                   child: GridView.count(
@@ -523,6 +529,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                 ),
               ],
             ),
+            Spacer(),
+            Spacer(),
           ],
         ),
       ),

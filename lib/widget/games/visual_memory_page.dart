@@ -27,11 +27,21 @@ enum GameState {
 }
 
 class _VisualMemoryPageState extends State<VisualMemoryPage> {
+  int calculateGridHeight() {
+    // if (sequenceLength < 5) return 500;
+    // if (sequenceLength < 7) return 600;
+    // if (sequenceLength < 11) return 800;
+    // if (sequenceLength < 15) return 800;
+    // return 800;
+    return 800;
+  }
+
+  int get gridHeight => calculateGridHeight();
   int calculateGridSize() {
-    if (tileCount < 5) return 3;
-    if (tileCount < 9) return 4;
-    if (tileCount < 12) return 5;
-    if (tileCount < 17) return 6;
+    if (sequenceLength < 5) return 3;
+    if (sequenceLength < 9) return 4;
+    if (sequenceLength < 12) return 5;
+    if (sequenceLength < 17) return 6;
     return 7;
   }
 
@@ -41,7 +51,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   StreamSubscription<GamepadEvent>? gamepadSubscription;
 
   int get gridSize => calculateGridSize();
-  int tileCount = 3;
+  int sequenceLength = 3;
   int lives = 3;
   int levelLives = 3;
   Set<int> availablePositions = {};
@@ -139,7 +149,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     for (int i = 0; i < gridSize * gridSize; i++) {
       availablePositions.add(i);
     }
-    for (int i = 0; i < tileCount; i++) {
+    for (int i = 0; i < sequenceLength; i++) {
       int randomAvailableTile = Random().nextInt(availablePositions.length);
       int element = availablePositions.elementAt(randomAvailableTile);
       availablePositions.remove(element);
@@ -190,7 +200,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     });
     await Future.delayed(Duration(seconds: 2));
     setState(() {
-      tileCount++;
+      sequenceLength++;
     });
     await startLevel();
   }
@@ -217,10 +227,10 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     await Future.delayed(Duration(seconds: 2));
     if (context.mounted) {
       GetIt.I<GameResultCubit>().visualMemoryTestOver(
-        VisualMemoryTestResult(tileCount: tileCount - 1),
+        VisualMemoryTestResult(tileCount: sequenceLength - 1),
       );
       GetIt.I<RecordsCubit>().saveVisualMemoryGameResult(
-        VisualMemoryTestResult(tileCount: tileCount - 1),
+        VisualMemoryTestResult(tileCount: sequenceLength - 1),
       );
       // ignore: use_build_context_synchronously
       context.go('/');
@@ -279,6 +289,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -288,9 +299,10 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                     Icon(Icons.favorite, color: Colors.transparent, size: 30),
                 ],
               ),
+              Spacer(),
               Container(
-                height: 600,
-                width: 600,
+                height: gridHeight.toDouble(),
+                width: gridHeight.toDouble(),
                 child: GridView.count(
                   physics: NeverScrollableScrollPhysics(),
                   crossAxisCount: gridSize,
@@ -323,6 +335,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                   ],
                 ),
               ),
+              Spacer(),
+              Spacer(),
             ],
           ),
         ),
