@@ -25,21 +25,19 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   final levelWinPlayer = AudioPlayer();
   final buzzPlayer = AudioPlayer();
   int lastSelectionTime = 0;
-  Duration selectionDelay = Duration(milliseconds: 200);
+  static const int gridHeight = 700;
+  Duration selectionDelay = Duration(milliseconds: 100);
   int lives = 3;
   int progress = 0;
   int sequenceLength = 1;
-  int mouseX = 0;
-  int mouseY = 0;
+  static const double cursorDiameter = 40;
+  double cursorX = (gridHeight / 2) - (cursorDiameter / 2);
+  double cursorY = (gridHeight / 2) + (cursorDiameter / 2);
   double cursorXValue = 0;
   double cursorYValue = 0;
-  double cursorX = 0;
-  double cursorY = 0;
   double sensitivity = 15.0;
-  double cursorDiameter = 40;
   Timer? cursorTimer;
   StreamSubscription<GamepadEvent>? gamepadSubscription;
-  static const int gridHeight = 600;
 
   // Last non-zero joystick direction for filtering tiles
   double lastDirX = 0;
@@ -121,8 +119,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   int calculateGridSize() {
     if (sequenceLength < 5) return 3;
     if (sequenceLength < 7) return 4;
-    if (sequenceLength < 10) return 4;
-    if (sequenceLength < 15) return 5;
+    if (sequenceLength < 11) return 5;
+    if (sequenceLength < 15) return 6;
     return 6;
   }
 
@@ -154,6 +152,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   }
 
   void passLevel() {
+    setState(() {
+      lives = 3;
+    });
     progress++;
     if (sequenceLength < 3 || progress >= 3) {
       progress = 0;
@@ -179,16 +180,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       return;
     }
     newLevel(0);
-  }
-
-  void setMouseToIdx(int idx) {
-    int x = idx % gridSize;
-    int y = idx ~/ gridSize;
-
-    setState(() {
-      mouseX = x;
-      mouseY = y;
-    });
   }
 
   Future<void> gracePeriod(int ms) async {
@@ -218,7 +209,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     setState(() {
       sequencePositions = newSequencePositions;
     });
-    setMouseToIdx(sequencePositions[0]);
     setCursorPos(
       getTileX(sequencePositions[0]),
       getTileY(sequencePositions[0]),
@@ -348,32 +338,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     return findNextRowTile(x, y + dir, dir);
   }
 
-  // void changeMousePos(int dX, int dY) {
-  //   if (dX != 0) {
-  //     int nextXTile = findNextColumnTile(mouseX, mouseY, dX);
-  //     if (nextXTile != -1) {
-  //       setState(() {
-  //         mouseX = getXPosFromTileIdx(nextXTile);
-  //         mouseY = getYPosFromTileIdx(nextXTile);
-  //       });
-  //     }
-  //   } else if (dY != 0) {
-  //     int nextYTile = findNextRowTile(mouseX, mouseY, dY);
-  //     if (nextYTile != -1) {
-  //       setState(() {
-  //         mouseX = getXPosFromTileIdx(nextYTile);
-  //         mouseY = getYPosFromTileIdx(nextYTile);
-  //       });
-  //     }
-  //   }
-  // }
-  void changeMousePos(int dX, int dY) {
-    setState(() {
-      mouseX += dX;
-      mouseY += dY;
-    });
-  }
-
   // Initialize the game with a new level
   void handleGamepadEvent(GamepadEvent event) {
     if (event.type == KeyType.button) {
@@ -388,18 +352,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     if (event.type == KeyType.analog) {
       if (event.key == 'l.joystick - yAxis') {
         cursorYValue = event.value;
-        // if (event.value <= -.95) {
-        //   changeMousePos(0, -1);
-        // } else if (event.value >= .95) {
-        //   changeMousePos(0, 1);
-        // }
       } else if (event.key == 'l.joystick - xAxis') {
         cursorXValue = event.value;
-        // if (event.value <= -.95) {
-        //   changeMousePos(1, 0);
-        // } else if (event.value >= .95) {
-        //   changeMousePos(-1, 0);
-        // }
       }
     }
   }
@@ -502,6 +456,11 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
             Stack(
               children: [
                 Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: BoxBorder.all(color: Colors.black, width: 2),
+                    color: Colors.white,
+                  ),
                   height: gridHeight.toDouble(),
                   width: gridHeight.toDouble(),
                   child: GridView.count(
@@ -518,9 +477,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                                   selectTile(i);
                                 },
                           child: Container(
-                            margin: EdgeInsets.all(6),
+                            margin: EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(20),
                               border: isHovered(i)
                                   ? Border.all(
                                       color: Colors.black,

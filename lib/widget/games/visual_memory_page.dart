@@ -29,9 +29,9 @@ enum GameState {
 class _VisualMemoryPageState extends State<VisualMemoryPage> {
   int calculateGridSize() {
     if (tileCount < 5) return 3;
-    if (tileCount < 7) return 4;
-    if (tileCount < 10) return 5;
-    if (tileCount < 15) return 6;
+    if (tileCount < 9) return 4;
+    if (tileCount < 12) return 5;
+    if (tileCount < 17) return 6;
     return 7;
   }
 
