@@ -23,6 +23,12 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   List<OverlayEntry> overlayEntries = [];
   List<GlobalKey> tileKeys = [];
   GlobalKey scoreGlobalKey = GlobalKey();
+  GlobalKey cursorGlobalKey = GlobalKey();
+  List<GlobalKey> heartKeys = [
+    GlobalKey(),
+    GlobalKey(),
+    GlobalKey(),
+  ];
 
   int totalScore = 0;
   int totalBonusPoints = 0;
@@ -100,15 +106,17 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
         cursorX += deltaX;
         cursorY += deltaY;
 
+        int cursorOutOfBoundAmnt = 100;
+
         cursorX = clampDouble(
           cursorX,
-          cursorDiameter / 2,
-          gridHeight - cursorDiameter / 2,
+          cursorDiameter / 2 - 100,
+          gridHeight - cursorDiameter / 2 + 100,
         );
         cursorY = clampDouble(
           cursorY,
-          cursorDiameter / 2,
-          gridHeight - cursorDiameter / 2,
+          cursorDiameter / 2 - 100,
+          gridHeight - cursorDiameter / 2 + 100,
         );
 
         if (deltaY.abs() > 0.1 || deltaX.abs() > 0.1) {
@@ -169,12 +177,22 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
 
   void passLevel() {
     countdownTimer?.cancel();
-    setState(() {
-      // lives = 3;
-      lives = min(3, lives + 1);
-      totalScore += bonusCountdown;
-      isCountingDown = false;
-    });
+    // Animate life return from the last selected tile to the heart position
+    if (correct > 0) {
+      int lastTileIdx = sequencePositions[correct - 1];
+      int heartIdx = lives; // the heart index to fill next (0-based)
+
+      if (lives < 3) {
+        animateLifeReturnFromTileToHeart(lastTileIdx, heartIdx - 1);
+      }
+    } else {
+      // fallback if no last tile
+      setState(() {
+        lives = min(3, lives + 1);
+        totalScore += bonusCountdown;
+        isCountingDown = false;
+      });
+    }
 
     progress++;
     if (sequenceLength < 3 || progress >= 3) {
@@ -201,10 +219,15 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
 
   void failLevel() {
     countdownTimer?.cancel();
+    if (lives > 0) {
+      animateLostHeart(lives - 1);
+    }
+
     setState(() {
       isCountingDown = false;
       lives--;
     });
+
     if (lives <= 0) {
       endGame();
       return;
@@ -411,6 +434,120 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     }
   }
 
+  void animateLifeReturnFromTileToHeart(int tileIdx, int heartIdx) {
+    // final tileContext = tileKeys[tileIdx].currentContext;
+    final tileContext = cursorGlobalKey.currentContext;
+    final heartContext = heartKeys[heartIdx].currentContext;
+
+    if (tileContext == null || heartContext == null) return;
+
+    final tileBox = tileContext.findRenderObject() as RenderBox;
+    final heartBox = heartContext.findRenderObject() as RenderBox;
+
+    final startOffset = tileBox.localToGlobal(
+      Offset(
+        tileBox.size.width / 2 - (cursorDiameter / 2),
+        tileBox.size.height / 2 - (cursorDiameter / 2),
+      ),
+    );
+    final endOffset = heartBox.localToGlobal(
+      Offset(heartBox.size.width / 2, heartBox.size.height / 2),
+    );
+
+    final overlay = Overlay.of(context);
+    final duration = Duration(milliseconds: 800);
+
+    final random = Random();
+    final endRotationDegrees =
+        (5 + random.nextDouble() * 20) * (random.nextBool() ? 1 : -1);
+    final endRotationRadians = endRotationDegrees * (pi / 180);
+
+    final entry = OverlayEntry(
+      builder: (ctx) => TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: 1),
+        curve: Curves.easeInOut,
+        duration: duration,
+        builder: (context, t, child) {
+          final rotation = lerpDouble(endRotationRadians, 0, t)!;
+
+          // Linear interpolate position between start and end:
+          final pos = Offset.lerp(startOffset, endOffset, t)!;
+
+          return Positioned(
+            top: pos.dy,
+            left: pos.dx,
+            child: Transform.rotate(
+              angle: rotation,
+              child: child,
+            ),
+          );
+        },
+        child: Icon(
+          Icons.favorite,
+          color: Colors.white,
+          size: 40,
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    Future.delayed(duration, () {
+      entry.remove();
+
+      // After animation ends, add life back
+      setState(() {
+        lives = min(3, lives + 1);
+      });
+    });
+  }
+
+  void animateLostHeart(int index) {
+    final context = heartKeys[index].currentContext;
+    if (context == null) return;
+
+    final box = context.findRenderObject() as RenderBox;
+    final startOffset = box.localToGlobal(Offset.zero);
+
+    final overlay = Overlay.of(context);
+    final duration = Duration(milliseconds: 800);
+
+    final random = Random();
+    // Random angle between 5 and 25 degrees, with random sign (±)
+    final endRotationDegrees =
+        (5 + random.nextDouble() * 20) * (random.nextBool() ? 1 : -1);
+    final endRotationRadians = endRotationDegrees * (pi / 180);
+
+    final entry = OverlayEntry(
+      builder: (ctx) => TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: 1),
+        duration: duration,
+        builder: (context, t, child) {
+          final rotation = lerpDouble(0, endRotationRadians, t)!;
+          return Positioned(
+            top: startOffset.dy + t * 60,
+            left: startOffset.dx,
+            child: Opacity(
+              opacity: 1 - t,
+              child: Transform.rotate(
+                angle: rotation,
+                child: child,
+              ),
+            ),
+          );
+        },
+        child: Icon(
+          Icons.favorite_border,
+          color: Colors.white,
+          size: 40,
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Future.delayed(duration, () => entry.remove());
+  }
+
   void animateScoreFrom({
     required Offset startOffset,
     required Offset endOffset,
@@ -577,17 +714,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     var centerX = getTileX(tileIdx);
     var centerY = getTileY(tileIdx);
 
-    // Offset clampedAverageMovement = clampOffset(averageMovement, 200.0);
-
-    // final removedVelocityX = centerX - averageMovement.dx;
-    // final removedVelocityY = centerY - averageMovement.dy;
-    // final removedVelocityX = centerX - clampedAverageMovement.dx;
-    // final removedVelocityY = centerY - clampedAverageMovement.dy;
-
-    return sqrt(pow(centerX - cursorX, 2) + pow(centerY - cursorY, 2));
-    // return sqrt(
-    //   pow(removedVelocityX - cursorX, 2) + pow(removedVelocityY - cursorY, 2),
-    // );
+    return sqrt(
+      pow(centerX - cursorX, 2) + pow(centerY - cursorY, 2),
+    );
   }
 
   int? getHoveredTile() {
@@ -654,11 +783,21 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                     ),
                     const SizedBox(width: 20),
                     for (int i = 0; i < 3; i++)
-                      Icon(
-                        i < lives ? Icons.favorite : Icons.favorite_border,
-                        color: Colors.white,
-                        size: 40,
+                      Container(
+                        key: heartKeys[i],
+                        child: Icon(
+                          // i < lives ? Icons.favorite : Icons.favorite_border,
+                          Icons.favorite,
+                          color: i < lives ? Colors.white : Colors.transparent,
+                          size: 40,
+                        ),
                       ),
+
+                    // Icon(
+                    //   i < lives ? Icons.favorite : Icons.favorite_border,
+                    //   color: Colors.white,
+                    //   size: 40,
+                    // ),
                   ],
                 ),
               ),
@@ -687,6 +826,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
               ),
               Spacer(flex: 4),
               Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Container(
                     decoration: BoxDecoration(),
@@ -745,6 +885,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                   ),
 
                   Positioned(
+                    key: cursorGlobalKey,
                     left: cursorX - cursorDiameter / 2,
                     top: cursorY - cursorDiameter / 2,
                     child: Container(
