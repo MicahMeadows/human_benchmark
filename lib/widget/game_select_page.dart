@@ -108,11 +108,13 @@ class _GameSelectPageState extends State<GameSelectPage> {
   }
 
   void selectOption(int idx) {
-    if (idx < 0 || idx >= gameOptions.length) return;
+    if (creditBankCubit.state >= gameOptions[idx].cost) {
+      if (idx < 0 || idx >= gameOptions.length) return;
 
-    final option = gameOptions[idx];
-    context.go(option.route);
-    creditBankCubit.subtractCredits(option.cost);
+      final option = gameOptions[idx];
+      context.go(option.route);
+      creditBankCubit.subtractCredits(option.cost);
+    }
   }
 
   @override
@@ -143,7 +145,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
                               'Longest Visual Memory Sequence: ${records.longestVisualMemorySequence}',
                             ),
                             Text(
-                              'Longest Chimp Test Sequence: ${records.longestChimpTestSequence}',
+                              'Longest Chimp Test Sequence: ${records.chimpHighScore}',
                             ),
                           ],
                         );
@@ -168,7 +170,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
                                 Center(child: Text('no game played')),
                             chimpTest: (result) => Center(
                               child: Text(
-                                'sequence length: ${result.sequenceLength}',
+                                'sequence length: ${result.highScore}',
                               ),
                             ),
                             visualMemoryTest: (result) => Center(

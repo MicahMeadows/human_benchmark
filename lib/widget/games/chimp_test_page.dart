@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
+import 'package:human_benchmark/widget/animated_score.dart';
 import 'package:just_audio/just_audio.dart';
 
 class ChimpTestPage extends StatefulWidget {
@@ -20,6 +21,10 @@ class ChimpTestPage extends StatefulWidget {
 }
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
+  final GlobalKey scoreKey = GlobalKey();
+  final GlobalKey stackKey = GlobalKey();
+  List<Widget> scorePopups = [];
+
   int totalScore = 0;
   int totalBonusPoints = 0;
   int countdownValue = 10;
@@ -82,6 +87,30 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       clampDouble(offset.dx, -max, max),
       clampDouble(offset.dy, -max, max),
     );
+  }
+
+  void addAnimatedScore(Offset from, int scoreValue) {
+    final renderBox = stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final scoreBox = scoreKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null || scoreBox == null) return;
+
+    final fromGlobal = renderBox.globalToLocal(from);
+    final toGlobal = renderBox.globalToLocal(
+      scoreBox.localToGlobal(Offset.zero),
+    );
+
+    final animation = AnimatedScore(
+      startPosition: fromGlobal,
+      endPosition: toGlobal,
+      scoreText: '+$scoreValue',
+      onComplete: () {
+        setState(() => scorePopups.removeAt(0));
+      },
+    );
+
+    setState(() {
+      scorePopups.add(animation);
+    });
   }
 
   void startMovementTimer() {
@@ -169,9 +198,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   void passLevel() {
     countdownTimer?.cancel();
     setState(() {
-      lives = 3;
+      // lives = 3;
+      lives = min(3, lives + 1);
       totalScore += bonusCountdown;
-      bonusCountdown = 0;
       isCountingDown = false;
     });
 
@@ -190,10 +219,10 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       isCountingDown = false;
     });
     GetIt.I<GameResultCubit>().chimpTestOver(
-      ChimpTestResult(sequenceLength: sequenceLength - 1),
+      ChimpTestResult(highScore: sequenceLength - 1),
     );
     GetIt.I<RecordsCubit>().saveChimpGameResult(
-      ChimpTestResult(sequenceLength: sequenceLength - 1),
+      ChimpTestResult(highScore: totalScore),
     );
     context.go('/');
   }
@@ -202,8 +231,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     countdownTimer?.cancel();
     setState(() {
       isCountingDown = false;
+      lives--;
     });
-    lives--;
     if (lives <= 0) {
       endGame();
       return;
@@ -405,18 +434,43 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     }
   }
 
+  void animateScore(int score) {}
+
+  void addScore(int score) {
+    animateScore(score);
+    setState(() {
+      totalScore += score;
+    });
+  }
+
+  void removeScore(int score) {
+    setState(() {
+      totalScore = max(0, totalScore - score);
+    });
+  }
+
   void selectTile(int pos) {
     if (DateTime.now().millisecondsSinceEpoch - lastSelectionTime <
         selectionDelay.inMilliseconds) {
-      // Prevent double clicks
       return;
-    } else {
-      lastSelectionTime = DateTime.now().millisecondsSinceEpoch;
     }
+    lastSelectionTime = DateTime.now().millisecondsSinceEpoch;
     if (!canClick) return;
+
+    RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+    Offset globalPos = Offset.zero;
+    if (renderBox != null) {
+      final tileX = getTileX(pos);
+      final tileY = getTileY(pos);
+      globalPos = renderBox.localToGlobal(Offset(tileX, tileY));
+    }
+
     if (sequencePositions[correct] == pos) {
       setState(() {
         correct++;
+        int scoreToAdd = correct == sequenceLength ? 200 : 100;
+        addScore(scoreToAdd);
+        addAnimatedScore(globalPos, scoreToAdd);
         if (correct == sequenceLength) {
           playLevelCompleteSound();
           passLevel();
@@ -426,8 +480,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       });
     } else {
       if (correct > 0) {
+        removeScore(correct * 100);
         playBuzzSound();
-        // dont fail if click wrong tile first
         failLevel();
       }
     }
@@ -485,94 +539,151 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('chimp game'),
-      ),
       body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int i = 0; i < lives; i++)
-                  Icon(Icons.favorite, color: Colors.red, size: 30),
-              ],
-            ),
-            Text('score: ${totalScore}'),
-            Text('bonus: ${bonusCountdown}'),
-            Spacer(),
-            Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(),
-                  height: gridHeight.toDouble(),
-                  width: gridHeight.toDouble(),
-                  child: GridView.count(
-                    physics: NeverScrollableScrollPhysics(),
-                    crossAxisCount: gridSize,
-                    children: [
-                      for (int i = 0; i < gridSize * gridSize; i++)
-                        InkWell(
-                          onTap:
-                              !sequencePositions.contains(i) ||
-                                  correct > sequencePositions.indexOf(i)
-                              ? null
-                              : () {
-                                  selectTile(i);
-                                },
-                          child: Container(
-                            margin: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              border: isHovered(i)
-                                  ? Border.all(
-                                      color: Colors.black,
-                                      width: 6,
-                                    )
-                                  : null,
-                              color: sequencePositions.contains(i)
-                                  ? (correct <= sequencePositions.indexOf(i)
-                                        ? Colors.red
-                                        : Colors.green)
-                                  : Colors.transparent,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${sequencePositions.contains(i) && (correct == 0 || sequenceLength <= firstHiddenSequenceLength) ? sequencePositions.indexOf(i) + 1 : ''}',
-                                style: TextStyle(
-                                  color: sequencePositions.contains(i)
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontSize: 20,
+        child: Container(
+          // color: Colors.black,
+          color: Color(0xFF121212),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                margin: EdgeInsets.only(left: 80, top: 80, right: 80),
+                child: Row(
+                  children: [
+                    SizedBox(width: 5),
+                    Text(
+                      'SCORE',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 25),
+                    Text(
+                      '$totalScore',
+                      style: TextStyle(
+                        color: Color(0xFF03DAC6),
+                        fontSize: 40,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      'LIVES',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    for (int i = 0; i < 3; i++)
+                      Icon(
+                        i < lives ? Icons.favorite : Icons.favorite_border,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(left: 80, right: 80),
+                child: Row(
+                  children: [
+                    Text(
+                      'BONUS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    Text(
+                      '$bonusCountdown',
+                      style: TextStyle(
+                        color: Color(0xFF03DAC6),
+                        fontSize: 40,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Spacer(flex: 4),
+              Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(),
+                    height: gridHeight.toDouble(),
+                    width: gridHeight.toDouble(),
+                    child: GridView.count(
+                      physics: NeverScrollableScrollPhysics(),
+                      crossAxisCount: gridSize,
+                      children: [
+                        for (int i = 0; i < gridSize * gridSize; i++)
+                          InkWell(
+                            onTap:
+                                !sequencePositions.contains(i) ||
+                                    correct > sequencePositions.indexOf(i)
+                                ? null
+                                : () {
+                                    selectTile(i);
+                                  },
+                            child: Container(
+                              margin: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: isHovered(i)
+                                    ? Border.all(
+                                        // color: Colors.black,
+                                        color: Colors.white.withValues(
+                                          alpha: .8,
+                                        ),
+                                        width: 6,
+                                      )
+                                    : null,
+                                color: sequencePositions.contains(i)
+                                    ? (correct <= sequencePositions.indexOf(i)
+                                          ? Colors.lightBlue
+                                          // : Colors.green)
+                                          : Color(0xFF03DAC6))
+                                    : Colors.transparent,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${sequencePositions.contains(i) && (correct == 0 || sequenceLength <= firstHiddenSequenceLength) ? sequencePositions.indexOf(i) + 1 : ''}',
+                                  style: TextStyle(
+                                    // color: sequencePositions.contains(i)
+                                    //     ? Colors.black
+                                    //     : Colors.white,
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                Positioned(
-                  left: cursorX - cursorDiameter / 2,
-                  top: cursorY - cursorDiameter / 2,
-                  child: Container(
-                    height: cursorDiameter,
-                    width: cursorDiameter,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: .4),
-                      borderRadius: BorderRadius.circular(100),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
-            Spacer(),
-            Spacer(),
-          ],
+
+                  Positioned(
+                    left: cursorX - cursorDiameter / 2,
+                    top: cursorY - cursorDiameter / 2,
+                    child: Container(
+                      height: cursorDiameter,
+                      width: cursorDiameter,
+                      decoration: BoxDecoration(
+                        // color: Colors.blue.withValues(alpha: .4),
+                        color: Colors.white.withValues(alpha: .4),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Spacer(flex: 6),
+            ],
+          ),
         ),
       ),
     );

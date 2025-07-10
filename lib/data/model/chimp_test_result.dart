@@ -1,7 +1,7 @@
 class ChimpTestResult {
-  final int sequenceLength;
+  final int highScore;
 
   const ChimpTestResult({
-    required this.sequenceLength,
+    required this.highScore,
   });
 }

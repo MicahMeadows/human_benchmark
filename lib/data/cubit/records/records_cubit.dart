@@ -60,9 +60,9 @@ class RecordsCubit extends Cubit<RecordsState> {
   void saveChimpGameResult(ChimpTestResult result) async {
     await state.whenOrNull(
       loaded: (records) async {
-        if (result.sequenceLength > records.longestChimpTestSequence) {
+        if (result.highScore > records.chimpHighScore) {
           final newRecords = records.copyWith(
-            longestChimpTestSequence: result.sequenceLength,
+            chimpHighScore: result.highScore,
           );
           await recordsRepository.saveGameRecords(newRecords);
           emit(RecordsState.loaded(newRecords));

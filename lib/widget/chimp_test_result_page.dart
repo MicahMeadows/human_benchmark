@@ -11,7 +11,7 @@ class ChimpTestResultPage extends StatelessWidget {
     final ChimpTestResult gameResult = routeData['result'] as ChimpTestResult;
     return Scaffold(
       body: Center(
-        child: Text('Highest length: ${gameResult.sequenceLength}'),
+        child: Text('Highest length: ${gameResult.highScore}'),
       ),
     );
   }

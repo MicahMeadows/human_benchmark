@@ -8,7 +8,7 @@ sealed class GameRecords with _$GameRecords {
   const factory GameRecords({
     required int fastestReactionTime,
     required int longestVisualMemorySequence,
-    required int longestChimpTestSequence,
+    required int chimpHighScore,
   }) = _GameRecords;
 
   factory GameRecords.fromJson(Map<String, dynamic> json) =>

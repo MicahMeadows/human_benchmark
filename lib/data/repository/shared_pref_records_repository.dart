@@ -7,12 +7,13 @@ class SharedPrefRecordsRepository implements IRecordsRepository {
   @override
   Future<GameRecords> getGameRecords() async {
     final prefs = await SharedPreferences.getInstance();
+    // prefs.clear();
     final rawRecords = prefs.getString('game_records');
 
     if (rawRecords == null || rawRecords.isEmpty) {
       return GameRecords(
         fastestReactionTime: 0,
-        longestChimpTestSequence: 0,
+        chimpHighScore: 0,
         longestVisualMemorySequence: 0,
       );
     }
