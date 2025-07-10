@@ -30,6 +30,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     GlobalKey(),
   ];
 
+  int wrongTileIdx = -1;
   int totalScore = 0;
   int totalBonusPoints = 0;
   int countdownValue = 10;
@@ -189,7 +190,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       // fallback if no last tile
       setState(() {
         lives = min(3, lives + 1);
-        totalScore += bonusCountdown;
         isCountingDown = false;
       });
     }
@@ -260,6 +260,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
 
   void newLevel(int sequenceChange) async {
     await gracePeriod(1000);
+    setState(() {
+      wrongTileIdx = -1;
+    });
     sequenceLength += sequenceChange;
 
     tileKeys.clear();
@@ -432,6 +435,57 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
         cursorXValue = event.value;
       }
     }
+  }
+
+  void animatePointLoss({
+    required Offset startOffset,
+    required int points,
+  }) {
+    final duration = Duration(milliseconds: 800);
+    final overlay = Overlay.of(context);
+
+    final random = Random();
+    final horizontalJitter = random.nextDouble() * 60 - 30; // -30 to +30 px
+    final dropDistance = 80 + random.nextDouble() * 40; // 80–120 px drop
+
+    final entry = OverlayEntry(
+      builder: (ctx) => TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: 1),
+        duration: duration,
+        curve: Curves.easeIn,
+        builder: (context, t, child) {
+          final dx = startOffset.dx + horizontalJitter * t;
+          final dy = startOffset.dy + dropDistance * t;
+          final opacity = 1.0 - t;
+
+          return Positioned(
+            left: dx,
+            top: dy,
+            child: Opacity(
+              opacity: opacity,
+              child: Transform.scale(
+                scale: 1.0 - 0.2 * t,
+                child: child,
+              ),
+            ),
+          );
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: Text(
+            '-$points',
+            style: const TextStyle(
+              fontSize: 32,
+              color: Colors.redAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Future.delayed(duration, () => entry.remove());
   }
 
   void animateLifeReturnFromTileToHeart(int tileIdx, int heartIdx) {
@@ -664,6 +718,13 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     setState(() {
       totalScore = max(0, totalScore - score);
     });
+
+    final context = scoreGlobalKey.currentContext;
+    if (context != null) {
+      final box = context.findRenderObject() as RenderBox;
+      final offset = box.localToGlobal(Offset.zero);
+      animatePointLoss(startOffset: offset, points: score);
+    }
   }
 
   void selectTile(int pos) {
@@ -681,8 +742,8 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
         correct++;
         if (correct == sequenceLength) {
           print('correct: $correct, sequenceLength: $sequenceLength');
-          addScore(200);
-          animateScore(pos, 200);
+          addScore(100 + bonusCountdown);
+          animateScore(pos, 100 + bonusCountdown);
           playLevelCompleteSound();
           passLevel();
         } else {
@@ -693,6 +754,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       });
     } else {
       if (correct > 0) {
+        setState(() {
+          wrongTileIdx = pos;
+        });
         removeScore(correct * 100);
         playBuzzSound();
         failLevel();
@@ -859,7 +923,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                                         width: 6,
                                       )
                                     : null,
-                                color: sequencePositions.contains(i)
+                                color: wrongTileIdx == i
+                                    ? Color(0xFFCF6679)
+                                    : sequencePositions.contains(i)
                                     ? (correct <= sequencePositions.indexOf(i)
                                           ? Colors.lightBlue
                                           // : Colors.green)
