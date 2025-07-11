@@ -741,7 +741,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       setState(() {
         correct++;
         if (correct == sequenceLength) {
-          print('correct: $correct, sequenceLength: $sequenceLength');
           addScore(100 + bonusCountdown);
           animateScore(pos, 100 + bonusCountdown);
           playLevelCompleteSound();

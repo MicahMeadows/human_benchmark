@@ -75,11 +75,14 @@ class _FlipTileState extends State<FlipTile>
             alignment: Alignment.center,
             transform: Matrix4.rotationY(_animation.value),
             child: Container(
+              // margin: widget.isHovered
+              //     ? const EdgeInsets.all(20)
+              //     : EdgeInsets.all(6),
               decoration: BoxDecoration(
                 color: displayColor,
                 border: widget.isHovered
                     ? Border.all(
-                        color: Colors.black,
+                        color: Colors.white,
                         width: 4,
                       )
                     : null,
