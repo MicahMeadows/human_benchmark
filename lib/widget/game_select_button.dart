@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/model/game_select_option.dart';
 
 class GameSelectButton extends StatelessWidget {
@@ -28,7 +29,7 @@ class GameSelectButton extends StatelessWidget {
                   width: 4,
                 )
               : null,
-          color: Colors.blue,
+          color: primary,
         ),
         padding: EdgeInsets.all(10),
         child: Text(

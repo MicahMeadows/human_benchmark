@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/credit_bank/credit_bank_cubit.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
@@ -33,14 +34,14 @@ class _GameSelectPageState extends State<GameSelectPage> {
       gameName: 'Chimp Game',
       route: '/chimp_game',
     ),
-    GameSelectOption(
-      gameName: 'Reaction Test',
-      route: '/reaction_game',
-    ),
+    // GameSelectOption(
+    //   gameName: 'Reaction Test',
+    //   route: '/reaction_game',
+    // ),
   ];
 
   int selectionIndex = 0;
-  int maxSelectionIndex = 2; // Adjust based on the number of games
+  // int maxSelectionIndex = 2; // Adjust based on the number of games
 
   @override
   void dispose() {
@@ -98,7 +99,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
     }
 
     setState(() {
-      selectionIndex = newValue.clamp(0, maxSelectionIndex);
+      selectionIndex = newValue.clamp(0, gameOptions.length - 1);
     });
   }
 
@@ -120,17 +121,43 @@ class _GameSelectPageState extends State<GameSelectPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<RecordsCubit, RecordsState>(
-        bloc: recordsCubit,
-        builder: (context, recordsState) {
-          return BlocBuilder<CreditBankCubit, int>(
-            bloc: creditBankCubit,
-            builder: (context, coins) {
-              return Center(
-                child: Column(
+      body: Container(
+        color: background,
+        child: BlocBuilder<RecordsCubit, RecordsState>(
+          bloc: recordsCubit,
+          builder: (context, recordsState) {
+            return BlocBuilder<CreditBankCubit, int>(
+              bloc: creditBankCubit,
+              builder: (context, coins) {
+                return Column(
+                  mainAxisSize: MainAxisSize.max,
                   spacing: 4,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.all(14.0),
+                      child: Row(
+                        children: [
+                          SizedBox(width: 5),
+                          Text(
+                            'CREDIT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 25),
+                          Text(
+                            '$coins',
+                            style: TextStyle(
+                              color: secondary,
+                              fontSize: 40,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     recordsCubit.state.when(
                       initial: () {
                         return Text('no records loaded');
@@ -226,11 +253,11 @@ class _GameSelectPageState extends State<GameSelectPage> {
                     //       : null,
                     // ),
                   ],
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

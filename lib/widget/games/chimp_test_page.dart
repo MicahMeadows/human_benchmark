@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
@@ -810,7 +811,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
       body: Center(
         child: Container(
           // color: Colors.black,
-          color: Color(0xFF121212),
+          color: background,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -832,7 +833,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                       key: scoreGlobalKey,
                       '$totalScore',
                       style: TextStyle(
-                        color: Color(0xFF03DAC6),
+                        color: secondary,
                         fontSize: 40,
                       ),
                     ),
@@ -880,7 +881,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                     Text(
                       '$bonusCountdown',
                       style: TextStyle(
-                        color: Color(0xFF03DAC6),
+                        color: secondary,
                         fontSize: 40,
                       ),
                     ),
@@ -923,12 +924,12 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                                       )
                                     : null,
                                 color: wrongTileIdx == i
-                                    ? Color(0xFFCF6679)
+                                    ? primaryVariant
                                     : sequencePositions.contains(i)
                                     ? (correct <= sequencePositions.indexOf(i)
-                                          ? Colors.lightBlue
+                                          ? primary
                                           // : Colors.green)
-                                          : Color(0xFF03DAC6))
+                                          : secondary)
                                     : Colors.transparent,
                               ),
                               child: Center(

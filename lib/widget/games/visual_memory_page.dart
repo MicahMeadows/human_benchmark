@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
@@ -223,7 +224,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
             '${score >= 0 ? '+' : '-'}${score.abs()}',
             style: TextStyle(
               fontSize: 32,
-              color: score < 0 ? Color(0xffcf6679) : Colors.greenAccent,
+              color: score < 0 ? error : Colors.greenAccent,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -379,7 +380,7 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     return Scaffold(
       body: Center(
         child: Container(
-          color: const Color(0xFF121212),
+          color: background,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -400,8 +401,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                     Text(
                       '$totalScore',
                       key: scoreGlobalKey,
-                      style: const TextStyle(
-                        color: Color(0xFF03DAC6),
+                      style: TextStyle(
+                        color: secondary,
                         fontSize: 40,
                       ),
                     ),
@@ -441,8 +442,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                     const SizedBox(width: 20),
                     Text(
                       '$bonusCountdown',
-                      style: const TextStyle(
-                        color: Color(0xFF03DAC6),
+                      style: TextStyle(
+                        color: secondary,
                         fontSize: 40,
                       ),
                     ),
@@ -468,11 +469,11 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
                           isRevealed: getTileRevealed(i),
                           onTap: tileIsTappable(i) ? () => chooseTile(i) : null,
                           frontColor: wrongGuessPositions.contains(i)
-                              ? Colors.lightBlue.shade900
-                              : Colors.blue,
+                              ? primaryVariant
+                              : primary,
                           backColor: gameState == GameState.lost
                               ? Colors.red
-                              : const Color(0xFF03DAC6),
+                              : secondary,
                         ),
                       ),
                   ],
