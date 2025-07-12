@@ -108,8 +108,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
         cursorX += deltaX;
         cursorY += deltaY;
 
-        int cursorOutOfBoundAmnt = 100;
-
         cursorX = clampDouble(
           cursorX,
           cursorDiameter / 2 - 100,

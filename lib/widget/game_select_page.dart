@@ -9,7 +9,6 @@ import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/credit_bank/credit_bank_cubit.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
-import 'package:human_benchmark/data/model/game_select_option.dart';
 import 'package:human_benchmark/widget/game_select_button.dart';
 
 class GameSelectPage extends StatefulWidget {
@@ -25,23 +24,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
   final creditBankCubit = GetIt.I<CreditBankCubit>();
   StreamSubscription<GamepadEvent>? gamepadSubscription;
 
-  final gameOptions = [
-    GameSelectOption(
-      gameName: 'Visual Memory',
-      route: '/visual_memory_game',
-    ),
-    GameSelectOption(
-      gameName: 'Chimp Game',
-      route: '/chimp_game',
-    ),
-    // GameSelectOption(
-    //   gameName: 'Reaction Test',
-    //   route: '/reaction_game',
-    // ),
-  ];
-
   int selectionIndex = 0;
-  // int maxSelectionIndex = 2; // Adjust based on the number of games
 
   @override
   void dispose() {
@@ -68,7 +51,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
       // handle select button
       if (['y.circle', 'l1.rectangle.roundedbottom'].contains(event.key)) {
         if (event.value == 0) {
-          confirmSelection();
+          confirmSelection(selectionIndex);
         }
       }
 
@@ -99,30 +82,47 @@ class _GameSelectPageState extends State<GameSelectPage> {
     }
 
     setState(() {
-      selectionIndex = newValue.clamp(0, gameOptions.length - 1);
+      selectionIndex = newValue.clamp(0, 2);
     });
   }
 
-  void confirmSelection() {
+  void confirmSelection(int index) {
     print('Confirming selection: $selectionIndex');
-    selectOption(selectionIndex);
-  }
-
-  void selectOption(int idx) {
-    if (creditBankCubit.state >= gameOptions[idx].cost) {
-      if (idx < 0 || idx >= gameOptions.length) return;
-
-      final option = gameOptions[idx];
-      context.go(option.route);
-      creditBankCubit.subtractCredits(option.cost);
+    // selectOption(selectionIndex);
+    switch (index) {
+      case 0:
+        context.go('/visual_memory_game');
+        creditBankCubit.subtractCredits(1);
+        break;
+      case 1:
+        context.go('/chimp_game');
+        creditBankCubit.subtractCredits(1);
+        break;
+      case 2:
+        context.go('/reaction_game');
+        creditBankCubit.subtractCredits(1);
+        break;
+      default:
+        print('Invalid selection index: $index');
     }
   }
+
+  // void selectOption(int idx) {
+  //   if (creditBankCubit.state >= gameOptions[idx].cost) {
+  //     if (idx < 0 || idx >= gameOptions.length) return;
+
+  //     final option = gameOptions[idx];
+  //     context.go(option.route);
+  //     creditBankCubit.subtractCredits(option.cost);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: background,
+        // color: background,
+        color: Color(0xff1e1e1e),
         child: BlocBuilder<RecordsCubit, RecordsState>(
           bloc: recordsCubit,
           builder: (context, recordsState) {
@@ -187,8 +187,8 @@ class _GameSelectPageState extends State<GameSelectPage> {
                     ),
                     Container(
                       color: Colors.green,
-                      height: 300,
-                      width: 600,
+                      height: 400,
+                      // width: 600,
                       child: BlocBuilder<GameResultCubit, GameResultState>(
                         bloc: gameResultCubit,
                         builder: (context, state) {
@@ -211,47 +211,54 @@ class _GameSelectPageState extends State<GameSelectPage> {
                       ),
                     ),
                     SizedBox(height: 30),
-                    for (var option in gameOptions)
-                      GameSelectButton(
-                        isHovered:
-                            selectionIndex == gameOptions.indexOf(option),
-                        option: option,
-                        onTap: coins >= option.cost
-                            ? () {
-                                selectOption(gameOptions.indexOf(option));
-                              }
-                            : null,
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 200),
+                      child: Column(
+                        children: [
+                          GameSelectButton(
+                            highScore: 123456,
+                            lastScore: 29182,
+                            imageScale: 1.4,
+                            backgroundImage:
+                                'assets/image/visual_background.png',
+                            onTap: coins >= 1
+                                ? () {
+                                    confirmSelection(0);
+                                  }
+                                : null,
+                            isHovered: selectionIndex == 0,
+                            gameName: 'MEMORY\nTEST',
+                          ),
+                          const SizedBox(height: 20),
+                          GameSelectButton(
+                            imageScale: 1.8,
+                            highScore: 238289,
+                            lastScore: 2838,
+                            backgroundImage:
+                                'assets/image/chimp_background.png',
+                            onTap: coins >= 1
+                                ? () {
+                                    confirmSelection(1);
+                                  }
+                                : null,
+                            isHovered: selectionIndex == 1,
+                            gameName: 'CHIMP\nTEST',
+                          ),
+                        ],
                       ),
-                    // GameSelectButton(
-                    //   isHovered: selectionIndex == 0,
-                    //   gameName: 'Visual Memory',
-                    //   onTap: coins > 0
-                    //       ? () {
-                    //           context.go('/visual_memory_game');
-                    //           creditBankCubit.subtractCredits(1);
-                    //         }
-                    //       : null,
-                    // ),
-                    // GameSelectButton(
-                    //   isHovered: selectionIndex == 1,
-                    //   gameName: 'Chimp Game',
-                    //   onTap: coins > 0
-                    //       ? () {
-                    //           context.go('/chimp_game');
-                    //           creditBankCubit.subtractCredits(1);
-                    //         }
-                    //       : null,
-                    // ),
-                    // GameSelectButton(
-                    //   isHovered: selectionIndex == 2,
-                    //   gameName: 'Reaction Test',
-                    //   onTap: coins > 0
-                    //       ? () {
-                    //           context.go('/reaction_game');
-                    //           creditBankCubit.subtractCredits(1);
-                    //         }
-                    //       : null,
-                    // ),
+                    ),
+
+                    // for (var option in gameOptions)
+                    //   GameSelectButton(
+                    //     isHovered:
+                    //         selectionIndex == gameOptions.indexOf(option),
+                    //     gameName: option.gameName,
+                    //     onTap: coins >= option.cost
+                    //         ? () {
+                    //             selectOption(gameOptions.indexOf(option));
+                    //           }
+                    //         : null,
+                    //   ),
                   ],
                 );
               },
