@@ -46,6 +46,7 @@ dependencies:
   shared_preferences: ^2.5.3
   json_annotation: ^4.9.0
   json_serializable: ^6.9.5
+  particles_flutter: ^1.0.1
 
 dev_dependencies:
   flutter_test:
