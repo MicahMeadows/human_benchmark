@@ -23,6 +23,7 @@ class GameSelectPage extends StatefulWidget {
 }
 
 class _GameSelectPageState extends State<GameSelectPage> {
+  bool _canSelect = false;
   final recordsCubit = GetIt.I<RecordsCubit>();
   final gameResultCubit = GetIt.I<GameResultCubit>();
   final creditBankCubit = GetIt.I<CreditBankCubit>();
@@ -38,8 +39,15 @@ class _GameSelectPageState extends State<GameSelectPage> {
 
   @override
   void initState() {
-    gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
     super.initState();
+    gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
+
+    // Disable input for 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      setState(() {
+        _canSelect = true;
+      });
+    });
   }
 
   void acceptCoin() {
@@ -267,7 +275,9 @@ class _GameSelectPageState extends State<GameSelectPage> {
   }
 
   void confirmSelection(int index) {
-    print('Confirming selection: $selectionIndex');
+    if (!_canSelect) {
+      return;
+    }
     // selectOption(selectionIndex);
     switch (index) {
       case 0:
