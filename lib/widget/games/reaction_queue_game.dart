@@ -31,6 +31,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   static const double _spawnOffset = 500; // distance from centre
   // static const Duration _arrowDuration = Duration(seconds: 1);
   Duration get _arrowDuration => Duration(milliseconds: getArrowDuration());
+  bool _inputCooldown = false;
   int getArrowDuration() {
     return 1000 - ((level - 2) * 25) + 25;
 
@@ -47,6 +48,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
   int totalScore = 0;
 
+  int levelScore = 0;
   GlobalKey scoreGlobalKey = GlobalKey();
   GlobalKey cursorGlobalKey = GlobalKey();
   List<GlobalKey> heartKeys = [
@@ -54,6 +56,108 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     GlobalKey(),
     GlobalKey(),
   ];
+
+  void animateScoreFly({required Offset start, required int scoreDelta}) {
+    // 1️⃣  Find the score text's top‑left on screen
+    final scoreBox =
+        scoreGlobalKey.currentContext?.findRenderObject() as RenderBox?;
+    if (scoreBox == null) return;
+    final end = scoreBox.localToGlobal(Offset.zero);
+
+    // 2️⃣  Choose randomised duration, curve, scale, and Bézier control point
+    final duration = Duration(milliseconds: Random().nextInt(400) + 400);
+
+    final curveOptions = [
+      Curves.easeInOut,
+      Curves.easeOutBack,
+      Curves.fastOutSlowIn,
+      Curves.decelerate,
+    ];
+    final curve = curveOptions[Random().nextInt(curveOptions.length)];
+
+    final mid = Offset.lerp(start, end, .5)!;
+    final arcHeight = 100 + Random().nextDouble() * 100;
+    final arcDir = Random().nextBool() ? 1 : -1;
+    final arcWidth = Random().nextDouble() * 100 * arcDir;
+    final ctrl = mid + Offset(arcWidth, -arcHeight);
+
+    final scaleStart = .5 + Random().nextDouble() * .1; // 0.5–0.6
+    final scaleEnd = 1.0 + Random().nextDouble() * .5; // 1.0–1.5
+
+    Offset qBezier(double t, Offset p0, Offset p1, Offset p2) {
+      final u = 1 - t;
+      return Offset(
+        u * u * p0.dx + 2 * u * t * p1.dx + t * t * p2.dx,
+        u * u * p0.dy + 2 * u * t * p1.dy + t * t * p2.dy,
+      );
+    }
+
+    // 3️⃣  Build overlay entry
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (_) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: duration,
+        curve: curve,
+        builder: (_, t, child) {
+          final pos = qBezier(t, start, ctrl, end);
+          final scale = lerpDouble(scaleStart, scaleEnd, t)!;
+
+          return Positioned(
+            left: pos.dx,
+            top: pos.dy,
+            child: Transform.scale(
+              scale: scale,
+              child: Opacity(
+                opacity: max(min(0, 1 - t), 1),
+                child: child,
+              ),
+            ),
+          );
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: Text(
+            '${scoreDelta > 0 ? '+' : ''}$scoreDelta',
+            style: TextStyle(
+              fontSize: 32,
+              color: scoreDelta >= 0 ? secondary : Colors.redAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Future.delayed(duration, () => entry.remove());
+  }
+
+  double _centreBonusMultiplier() {
+    final size = MediaQuery.of(context).size;
+
+    final iconTL = _iconTopLeft(
+      size,
+      _arrowController.value,
+      _currentArrowDirection,
+    );
+    final iconCtr = iconTL + const Offset(_iconSize / 2, _iconSize / 2);
+
+    final zoneCtr = Offset(size.width / 2, size.height / 2);
+
+    final dist = (iconCtr - zoneCtr).distance;
+
+    final maxDist = (_zoneSize - _iconSize) / 2;
+
+    final threshold = maxDist * 0.2;
+
+    if (dist <= threshold) {
+      return 1.0;
+    }
+
+    final t = ((dist - threshold) / (maxDist - threshold)).clamp(0.0, 1.0);
+    return 1.0 - 0.5 * t; // drops from 1 to 0.5 between 80% and 100%
+  }
 
   void animateLostHeart(int index) {
     final context = heartKeys[index].currentContext;
@@ -103,6 +207,8 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
   static const int maxLives = 3;
 
+  Color? _zoneBorderColor;
+
   /* ─────────────────────  STATE  ───────────────────── */
   late Direction _currentArrowDirection;
   final Random _random = Random();
@@ -138,7 +244,6 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   // Lives & game over state
   int lives = maxLives;
   int levelLives = 3;
-  bool _gameOver = false;
 
   /* ─────────────────────  INIT / DISPOSE  ───────────────────── */
   @override
@@ -161,7 +266,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
     // Mark a miss when arrow reaches its target edge
     _arrowController.addListener(() {
-      if (!_gameOver && !didMissArrow && _arrowController.value >= 1.0) {
+      if (!didMissArrow && _arrowController.value >= 1.0) {
         didMissArrow = true;
         handleWrongOption();
       }
@@ -182,7 +287,6 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   /* ─────────────────────  LEVEL / OPTION LOGIC  ───────────────────── */
   void startNewLevel() {
     levelLives = 3;
-    if (_gameOver) return;
 
     setState(() {
       options
@@ -205,8 +309,21 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   }
 
   void _pickNewArrowDirection() {
-    _currentArrowDirection =
-        Direction.values[_random.nextInt(Direction.values.length)];
+    if (level <= 5) {
+      final choices = [
+        Direction.up,
+      ];
+      _currentArrowDirection = choices[_random.nextInt(choices.length)];
+    } else if (level <= 10) {
+      final choices = [
+        Direction.up,
+        Direction.down,
+      ];
+      _currentArrowDirection = choices[_random.nextInt(choices.length)];
+    } else {
+      final choices = Direction.values;
+      _currentArrowDirection = choices[_random.nextInt(choices.length)];
+    }
   }
 
   void _nextArrowOrLevelEnd() {
@@ -215,7 +332,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       _pickNewArrowDirection();
       _arrowController.forward(from: 0); // launch next arrow
     } else {
-      Future.delayed(const Duration(milliseconds: 600), handleLevelComplete);
+      handleLevelComplete(false);
     }
   }
 
@@ -317,6 +434,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
   /* ─────────────────────  GAME LOGIC  ───────────────────── */
   void handleSelectOption(Option option) {
+    if (_inputCooldown) return; // ADD THIS LINE
     if (options.isEmpty || levelTransitioning) return;
 
     final bool inZone = _arrowIsInsideZone(context);
@@ -330,11 +448,50 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   }
 
   void handleCorrectOption() {
-    final opt = options.first;
-    soundManager.playCorrectChoiceSound();
-    triggerFlyOverlay(opt, true);
+    if (_inputCooldown) return; // Prevent double input
+    _inputCooldown = true;
 
-    setState(() => options.removeAt(0));
+    // 1️⃣  Work out where the icon is right now
+    final size = MediaQuery.of(context).size;
+    final iconTL = _iconTopLeft(
+      size,
+      _arrowController.value,
+      _currentArrowDirection,
+    );
+    final iconCtr = iconTL + const Offset(_iconSize / 2, _iconSize / 2);
+
+    // 2️⃣  Bonus calculation
+    final mult = _centreBonusMultiplier(); // 1.0 → 0.5
+    final earned = (100 * mult).round(); // int score
+
+    // 3️⃣  State & sound
+    soundManager.playCorrectChoiceSound();
+    triggerFlyOverlay(options.first, true);
+
+    setState(() {
+      options.removeAt(0);
+      _zoneBorderColor = Colors.green;
+      levelScore += earned;
+      totalScore += earned;
+    });
+
+    // 4️⃣  Animate the flying “+score”
+    animateScoreFly(start: iconCtr, scoreDelta: earned);
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
+      setState(() {
+        _zoneBorderColor = null;
+      });
+    });
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      setState(() {
+        _inputCooldown = false; // Reset cooldown after 100ms
+      });
+    });
+
     _nextArrowOrLevelEnd();
   }
 
@@ -342,15 +499,32 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     lives--;
     animateLostHeart(lives);
 
-    if (lives <= 0) {
-      endGame();
-      _arrowController.stop();
-    } else {
-      options.clear();
-      Future.delayed(const Duration(milliseconds: 600), handleLevelComplete);
-      // startNewLevel();
-      // _nextArrowOrLevelEnd();
+    setState(() {
+      totalScore -= levelScore;
+    });
+
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final center =
+          renderBox.localToGlobal(Offset.zero) +
+          Offset(
+            MediaQuery.of(context).size.width / 2,
+            MediaQuery.of(context).size.height / 2,
+          );
+      animateScoreFly(start: center, scoreDelta: -levelScore);
+      if (levelScore > 0) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          animateScoreFly(start: center, scoreDelta: -levelScore);
+        });
+      }
     }
+
+    setState(() {
+      levelScore = 0;
+    });
+
+    options.clear();
+    handleLevelComplete(lives <= 0);
   }
 
   void endGame() {
@@ -364,25 +538,54 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   }
 
   void handleWrongOption() {
-    if (levelTransitioning || options.isEmpty) return;
+    if (_inputCooldown || levelTransitioning || options.isEmpty) return;
+    _inputCooldown = true;
 
     soundManager.playBuzzSound();
-    triggerFlyOverlay(options.first, false);
+    // triggerFlyOverlay(options.first, false);
+    setState(() => _zoneBorderColor = Colors.red);
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _inputCooldown = false; // Reset cooldown after 100ms
+        });
+      }
+    });
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        setState(() {
+          _inputCooldown = false; // Reset cooldown after 100ms
+        });
+      }
+    });
 
     setState(() {
       options.removeAt(0);
       levelLives--;
+      totalScore -= 50;
 
       if (levelLives <= 0) {
         failLevel();
       } else {
         _nextArrowOrLevelEnd(); // 🟢 This was missing for levelLives > 0
+        final renderBox = context.findRenderObject() as RenderBox?;
+        if (renderBox != null) {
+          final center =
+              renderBox.localToGlobal(Offset.zero) +
+              Offset(
+                MediaQuery.of(context).size.width / 2,
+                MediaQuery.of(context).size.height / 2,
+              );
+          animateScoreFly(start: center, scoreDelta: -50);
+        }
       }
     });
   }
 
-  Future<void> handleLevelComplete() async {
-    if (_gameOver || levelTransitioning) return;
+  Future<void> handleLevelComplete(bool shouldEnd) async {
+    if (levelTransitioning) return;
     levelTransitioning = true;
 
     if (levelLives <= 0) {
@@ -391,12 +594,18 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       setState(() => showX = false);
     } else {
       level++;
+      levelScore = 0; // 🔄 Reset only on level success
       setState(() => showCheck = true);
       await Future.delayed(const Duration(seconds: 1));
       setState(() => showCheck = false);
     }
 
     await Future.delayed(const Duration(milliseconds: 500));
+
+    if (shouldEnd) {
+      endGame();
+      return;
+    }
 
     startNewLevel();
     levelTransitioning = false;
@@ -504,12 +713,16 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
   Widget buildZone() {
     return Center(
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
         height: _zoneSize,
         width: _zoneSize,
         decoration: BoxDecoration(
           color: const Color(0xff050505),
-          border: Border.all(color: Colors.white.withOpacity(.35), width: 2),
+          border: Border.all(
+            color: _zoneBorderColor ?? Colors.white.withOpacity(.35),
+            width: 4,
+          ),
           borderRadius: BorderRadius.circular(10),
         ),
       ),

@@ -914,7 +914,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
                                     //     ? Colors.black
                                     //     : Colors.white,
                                     color: Colors.white,
-                                    fontSize: 20,
+                                    fontSize: 40,
                                   ),
                                 ),
                               ),
