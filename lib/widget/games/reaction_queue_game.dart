@@ -16,7 +16,7 @@ class ReactionQueueGame extends StatefulWidget {
   State<ReactionQueueGame> createState() => _ReactionQueueGameState();
 }
 
-enum Option { up, right, down, left, bomb }
+enum Option { up, right, down, left, circle, bomb }
 
 enum Direction { up, right, down, left }
 
@@ -231,7 +231,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   late final AnimationController _flyController;
   late Animation<Offset> _flyOffset;
   late final Animation<double> _flyOpacity;
-  late final Animation<double> _bombScale;
+  late final Animation<double> _circleScale;
 
   late final AnimationController _arrowController;
 
@@ -255,7 +255,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     _flyOpacity = Tween<double>(begin: 1, end: 0).animate(
       CurvedAnimation(parent: _flyController, curve: Curves.easeOutCubic),
     );
-    _bombScale = Tween<double>(begin: 1, end: 1.8).animate(
+    _circleScale = Tween<double>(begin: 1, end: 1.8).animate(
       CurvedAnimation(parent: _flyController, curve: Curves.easeOutCubic),
     );
 
@@ -268,7 +268,13 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     _arrowController.addListener(() {
       if (!didMissArrow && _arrowController.value >= 1.0) {
         didMissArrow = true;
-        handleWrongOption();
+        if (options.isNotEmpty && options.first == Option.bomb) {
+          // Bomb reached end: treat as correct (player avoided it)
+          handleCorrectOption();
+        } else {
+          // Normal arrow missed
+          handleWrongOption();
+        }
       }
     });
 
@@ -288,20 +294,42 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   void startNewLevel() {
     levelLives = 3;
 
+    // setState(() {
+    //   options
+    //     ..clear()
+    //     ..addAll(
+    //       List<Option>.generate(optionCount, (_) {
+    //         return Option.values[_random.nextInt(Option.values.length)];
+    //       }),
+    //     );
+    // });
     setState(() {
       options
         ..clear()
         ..addAll(
           List<Option>.generate(optionCount, (_) {
-            // const bombChance = 0.1;
-            // final isBomb = _random.nextDouble() < bombChance;
-            // return isBomb
-            //     ? Option.bomb
-            //     : Option.values[_random.nextInt(Option.values.length - 1)];
-            return Option.values[_random.nextInt(Option.values.length)];
+            final pool = <Option>[
+              Option.up,
+              Option.right,
+              Option.down,
+              Option.left,
+              Option.circle,
+            ];
+
+            if (level > 5) {
+              final randomChance = .05;
+              final randomValue = _random.nextDouble();
+
+              if (randomValue < randomChance) {
+                return Option.bomb; // 10% chance to add a bomb
+              }
+            }
+
+            return pool[_random.nextInt(pool.length)];
           }),
         );
     });
+
     didMissArrow = false;
     _pickNewArrowDirection();
     _arrowController.duration = _arrowDuration;
@@ -341,7 +369,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     if (event.type == KeyType.button &&
         ['y.circle', 'l1.rectangle.roundedbottom'].contains(event.key) &&
         event.value == 1) {
-      handleSelectOption(Option.bomb);
+      handleSelectOption(Option.circle);
     }
 
     if (event.type == KeyType.analog) {
@@ -434,11 +462,17 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
   /* ─────────────────────  GAME LOGIC  ───────────────────── */
   void handleSelectOption(Option option) {
-    if (_inputCooldown) return; // ADD THIS LINE
+    if (_inputCooldown) return;
     if (options.isEmpty || levelTransitioning) return;
 
     final bool inZone = _arrowIsInsideZone(context);
     final Option real = options.first;
+
+    if (real == Option.bomb) {
+      // Bomb always wrong even if in zone
+      handleWrongOption();
+      return;
+    }
 
     if (inZone && real == option) {
       handleCorrectOption();
@@ -548,7 +582,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         setState(() {
-          _inputCooldown = false; // Reset cooldown after 100ms
+          _zoneBorderColor = null; // Reset cooldown after 100ms
         });
       }
     });
@@ -625,6 +659,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       Option.down => const Offset(0, _slideDistance),
       Option.left => const Offset(-_slideDistance, 0),
       Option.bomb => Offset.zero,
+      Option.circle => Offset.zero,
     };
 
     _flyOffset = Tween<Offset>(begin: Offset.zero, end: endOffset).animate(
@@ -649,6 +684,13 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     Color? overrideColor,
   }) {
     switch (opt) {
+      case Option.bomb:
+        return Icon(
+          Icons.warning, // or Icons.dangerous, Icons.brightness_high, etc.
+          size: size,
+          color: overrideColor ?? Colors.redAccent,
+        );
+
       case Option.up:
         return Icon(
           Icons.arrow_upward,
@@ -673,9 +715,8 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
           size: size,
           color: overrideColor ?? primary,
         );
-      // case Option.bomb:
       //   return Icon(Icons.close, size: size, color: overrideColor ?? error);
-      case Option.bomb:
+      case Option.circle:
         return Icon(
           Icons.circle_outlined,
           size: size - 20,
@@ -741,9 +782,9 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       ),
     );
 
-    return lastCorrectOption == Option.bomb
+    return lastCorrectOption == Option.circle
         ? ScaleTransition(
-            scale: _bombScale,
+            scale: _circleScale,
             child: FadeTransition(opacity: _flyOpacity, child: child),
           )
         : SlideTransition(
