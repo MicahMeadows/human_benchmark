@@ -27,12 +27,12 @@ jobs:
           clang cmake ninja-build pkg-config \
           libgtk-3-dev liblzma-dev libstdc++-12-dev
 
-    # 3️⃣  Set up Flutter (subosito action caches the SDK automatically)
-    - name: Set up Flutter SDK
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.22.1' # or '3.22.0'
-        channel: stable
+    - name: Install Flutter 3.22.1 (with Dart 3.8.1)
+      run: |
+        git clone https://github.com/flutter/flutter.git --branch 3.22.1 --depth 1
+        echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
+        flutter --version
+
 
     # 4️⃣  Cache pub packages & .dart_tool
     - name: Cache pub packages
