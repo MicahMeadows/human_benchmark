@@ -11,7 +11,7 @@ import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:human_benchmark/data/sound_manager.dart';
 
 class ChimpTestPage extends StatefulWidget {
   const ChimpTestPage({super.key});
@@ -21,6 +21,7 @@ class ChimpTestPage extends StatefulWidget {
 }
 
 class _ChimpTestPageState extends State<ChimpTestPage> {
+  late final SoundManager soundManager;
   List<OverlayEntry> overlayEntries = [];
   List<GlobalKey> tileKeys = [];
   GlobalKey scoreGlobalKey = GlobalKey();
@@ -40,9 +41,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   Timer? countdownTimer;
 
   bool canClick = true;
-  final clickPlayer = AudioPlayer();
-  final levelWinPlayer = AudioPlayer();
-  final buzzPlayer = AudioPlayer();
   int lastSelectionTime = 0;
   int calculateGridHeight() {
     if (sequenceLength < 5) return 500;
@@ -153,27 +151,6 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
   List<int> sequencePositions = [];
   int correct = 0;
   final int firstHiddenSequenceLength = 1;
-
-  void playLevelCompleteSound() async {
-    clickPlayer.stop();
-    await clickPlayer.seek(Duration.zero);
-    await clickPlayer.play();
-    await clickPlayer.stop();
-  }
-
-  void playCorrectChoiceSound() async {
-    levelWinPlayer.stop();
-    await levelWinPlayer.seek(Duration.zero);
-    await levelWinPlayer.play();
-    await levelWinPlayer.stop();
-  }
-
-  void playBuzzSound() async {
-    buzzPlayer.stop();
-    await buzzPlayer.seek(Duration.zero);
-    await buzzPlayer.play();
-    await buzzPlayer.stop();
-  }
 
   void passLevel() {
     countdownTimer?.cancel();
@@ -303,10 +280,9 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
 
   @override
   void initState() {
+    soundManager = GetIt.I<SoundManager>();
     super.initState();
-    clickPlayer.setAsset('assets/audio/click-click.wav');
-    levelWinPlayer.setAsset('assets/audio/click2.wav');
-    buzzPlayer.setAsset('assets/audio/buzz.wav');
+
     gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
     startMovementTimer();
     newLevel(0);
@@ -742,12 +718,12 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
         if (correct == sequenceLength) {
           addScore(100 + bonusCountdown);
           animateScore(pos, 100 + bonusCountdown);
-          playLevelCompleteSound();
+          soundManager.playLevelCompleteSound();
           passLevel();
         } else {
           addScore(100);
           animateScore(pos, 100);
-          playCorrectChoiceSound();
+          soundManager.playCorrectChoiceSound();
         }
       });
     } else {
@@ -756,7 +732,7 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
           wrongTileIdx = pos;
         });
         removeScore(correct * 100);
-        playBuzzSound();
+        soundManager.playBuzzSound();
         failLevel();
       }
     }

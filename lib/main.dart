@@ -6,20 +6,24 @@ import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/repository/i_records_repository.dart';
 import 'package:human_benchmark/data/repository/shared_pref_records_repository.dart';
+import 'package:human_benchmark/data/sound_manager.dart';
 import 'package:human_benchmark/widget/games/chimp_test_page.dart';
 import 'package:human_benchmark/widget/chimp_test_result_page.dart';
 import 'package:human_benchmark/widget/game_select_page.dart';
+import 'package:human_benchmark/widget/games/reaction_queue_game.dart';
 import 'package:human_benchmark/widget/games/reaction_time_test_page.dart';
 import 'package:human_benchmark/widget/games/visual_memory_page.dart';
 
 final IRecordsRepository recordsRepository = SharedPrefRecordsRepository();
 
+final soundManager = SoundManager()..setup();
 final gameResultCubit = GameResultCubit();
 final creditBankCubit = CreditBankCubit();
 final recordsCubit = RecordsCubit(recordsRepository: recordsRepository)
   ..loadRecords();
 
 void registerDependencies() {
+  GetIt.I.registerSingleton<SoundManager>(soundManager);
   GetIt.I.registerSingleton<CreditBankCubit>(creditBankCubit);
   GetIt.I.registerSingleton<GameResultCubit>(gameResultCubit);
   GetIt.I.registerSingleton<RecordsCubit>(recordsCubit);
@@ -85,6 +89,18 @@ final _router = GoRouter(
       path: '/chimp_game',
       pageBuilder: (context, state) => CustomTransitionPage(
         child: ChimpTestPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurveTween(curve: Curves.easeInOutCirc).animate(animation),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/reaction_queue_game',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        child: ReactionQueueGame(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
             opacity: CurveTween(curve: Curves.easeInOutCirc).animate(animation),

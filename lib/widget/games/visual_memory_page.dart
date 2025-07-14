@@ -10,6 +10,7 @@ import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
+import 'package:human_benchmark/data/sound_manager.dart';
 import 'package:human_benchmark/widget/flip_tile.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -23,6 +24,7 @@ class VisualMemoryPage extends StatefulWidget {
 
 class _VisualMemoryPageState extends State<VisualMemoryPage> {
   int calculateGridHeight() => 800;
+  late final SoundManager soundManager;
   int get gridHeight => calculateGridHeight();
   int calculateGridSize() {
     if (sequenceLength < 5) return 3;
@@ -47,10 +49,6 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   bool isCountingDown = false;
   Timer? countdownTimer;
 
-  final clickPlayer = AudioPlayer();
-  final levelWinPlayer = AudioPlayer();
-  final buzzPlayer = AudioPlayer();
-
   Set<int> availablePositions = {};
   Set<int> hiddenPositions = {};
   Set<int> correctPositions = {};
@@ -63,11 +61,8 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   StreamSubscription<GamepadEvent>? gamepadSubscription;
   @override
   void initState() {
+    soundManager = GetIt.I<SoundManager>();
     super.initState();
-
-    clickPlayer.setAsset('assets/audio/click-click.wav');
-    levelWinPlayer.setAsset('assets/audio/click2.wav');
-    buzzPlayer.setAsset('assets/audio/buzz.wav');
 
     gamepadSubscription = Gamepads.events.listen(handleGamepadEvent);
     startLevel();
@@ -312,14 +307,14 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
     if (isLast) {
       winLevel();
     } else {
-      playCorrectChoiceSound();
+      soundManager.playCorrectChoiceSound();
     }
   }
 
   void handleIncorrectTile(int idx) async {
     if (wrongGuessPositions.contains(idx)) return;
 
-    playBuzzSound();
+    soundManager.playBuzzSound();
     setState(() {
       wrongGuessPositions.add(idx);
       levelLives--;
@@ -352,27 +347,12 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
   }
 
   void winLevel() async {
-    playLevelCompleteSound();
+    soundManager.playLevelCompleteSound();
     countdownTimer?.cancel();
     setState(() => gameState = GameState.finished);
     await Future.delayed(const Duration(seconds: 2));
     setState(() => sequenceLength++);
     await startLevel();
-  }
-
-  void playLevelCompleteSound() async {
-    await clickPlayer.seek(Duration.zero);
-    await clickPlayer.play();
-  }
-
-  void playCorrectChoiceSound() async {
-    await levelWinPlayer.seek(Duration.zero);
-    await levelWinPlayer.play();
-  }
-
-  void playBuzzSound() async {
-    await buzzPlayer.seek(Duration.zero);
-    await buzzPlayer.play();
   }
 
   @override

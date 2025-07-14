@@ -279,7 +279,8 @@ class _GameSelectPageState extends State<GameSelectPage> {
         creditBankCubit.subtractCredits(1);
         break;
       case 2:
-        context.go('/reaction_game');
+        // context.go('/reaction_game');
+        context.go('/reaction_queue_game');
         creditBankCubit.subtractCredits(1);
         break;
       default:
@@ -351,9 +352,10 @@ class _GameSelectPageState extends State<GameSelectPage> {
                       child: Container(
                         margin: EdgeInsets.symmetric(horizontal: 200),
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           spacing: 60,
                           children: [
+                            const SizedBox(height: 0),
                             GameSelectButton(
                               spacing: 5,
                               highScore: 123456,
@@ -386,22 +388,26 @@ class _GameSelectPageState extends State<GameSelectPage> {
                               isHovered: selectionIndex == 1,
                               gameName: 'CHIMP\nTEST',
                             ),
+                            GameSelectButton(
+                              spacing: 5,
+                              imageScale: 1.8,
+                              highScore: 238289,
+                              lastScore: 2838,
+                              backgroundImage:
+                                  // 'assets/image/chimp_background.png',
+                                  'assets/image/eyecon.png',
+                              onTap: coins >= 1
+                                  ? () {
+                                      confirmSelection(2);
+                                    }
+                                  : null,
+                              isHovered: selectionIndex == 2,
+                              gameName: 'REACTION\nTEST',
+                            ),
                           ],
                         ),
                       ),
                     ),
-
-                    // for (var option in gameOptions)
-                    //   GameSelectButton(
-                    //     isHovered:
-                    //         selectionIndex == gameOptions.indexOf(option),
-                    //     gameName: option.gameName,
-                    //     onTap: coins >= option.cost
-                    //         ? () {
-                    //             selectOption(gameOptions.indexOf(option));
-                    //           }
-                    //         : null,
-                    //   ),
                   ],
                 );
               },
