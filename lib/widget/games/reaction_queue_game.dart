@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
@@ -534,23 +535,31 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     final iconCtr = iconTL + const Offset(_iconSize / 2, _iconSize / 2);
 
     // 2️⃣  Bonus calculation
-    final mult = _centreBonusMultiplier(); // 1.0 → 0.5
+    final mult = _centreBonusMultiplier(); // 1.0 → 0.5
     final earned = (100 * mult).round(); // int score
 
     // 3️⃣  State & sound
     soundManager.playCorrectChoiceSound();
-    triggerFlyOverlay(options.first, true);
+    if (isCircleStart) {
+      triggerFlyOverlay(options.first, true);
+    }
 
     setState(() {
-      if (!isCircleEnd) {
+      // 🔥 KEY FIX: Don't remove circle option when starting circle game
+      if (!isCircleEnd && !endAfterCircle && !isCircleStart) {
         options.removeAt(0);
       }
+      // Only remove the circle option when the circle game actually ends
+      if (isCircleEnd) {
+        options.removeAt(0);
+      }
+
       _zoneBorderColor = Colors.green;
       levelScore += earned;
       totalScore += earned;
     });
 
-    // 4️⃣  Animate the flying “+score”
+    // 4️⃣  Animate the flying "+score"
     animateScoreFly(start: iconCtr, scoreDelta: earned);
 
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -567,14 +576,25 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       });
     });
 
-    if (!isCircleEnd) {
-      _nextArrowOrLevelEnd();
-    }
     if (isCircleStart) {
       startCircleGame();
+      return;
     }
-    if (endAfterCircle && isCircleGame) {
-      handleLevelComplete(false);
+
+    // Handle circle game completion
+    if (isCircleEnd) {
+      // Check if this was the last option after removing it
+      if (options.isEmpty) {
+        handleLevelComplete(false);
+      } else {
+        _nextArrowOrLevelEnd();
+      }
+      return;
+    }
+
+    // Handle regular options
+    if (!isCircleEnd) {
+      _nextArrowOrLevelEnd();
     }
   }
 
@@ -649,6 +669,10 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       isCircleGame = true;
       _arrowController.stop();
     });
+
+    _arrowController.forward(from: 0);
+    _arrowController.reset();
+    _arrowController.stop();
 
     // Reset the controller to ensure it starts from 0
     _circleGameController.reset();
@@ -749,7 +773,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     });
 
     setState(() {
-      if (!isCircleGame) {
+      if (!isCircleGame && !endAfterCircle) {
         options.removeAt(0);
       }
       levelLives--;
@@ -783,6 +807,8 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   Future<void> handleLevelComplete(bool shouldEnd) async {
     if (levelTransitioning) return;
     levelTransitioning = true;
+
+    soundManager.playLevelCompleteSound();
 
     if (levelLives <= 0) {
       setState(() => showX = true);
