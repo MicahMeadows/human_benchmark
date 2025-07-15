@@ -30,6 +30,26 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   static const double _iconSize = 100; // arrow icon size
   static const double _spawnOffset = 500; // distance from centre
   // static const Duration _arrowDuration = Duration(seconds: 1);
+
+  bool endAfterCircle = false;
+  bool isCircleGame = false;
+  int circleGameAngleWindow = 15;
+  double circleGameStartAngle = 0;
+  double circleGameEndAngle = 0;
+  double circleGameDeltaAngle = 0;
+  late AnimationController _circleGameController;
+  Duration get _circleGameDuration =>
+      Duration(milliseconds: getCircleGameDurMillis());
+  late Animation<double> _circleGameProgress; // from 0 to 1
+
+  int getCircleGameDurMillis() {
+    if (level < 5) return 1000;
+    if (level < 10) return 800;
+    if (level < 20) return 600;
+    return 400;
+    // return 2000 - ((level - 2) * 100) + 100;
+  }
+
   Duration get _arrowDuration => Duration(milliseconds: getArrowDuration());
   bool _inputCooldown = false;
   int getArrowDuration() {
@@ -228,6 +248,8 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
 
   Option? lastCorrectOption;
 
+  late Animation<double> _circleGameAngle;
+
   late final AnimationController _flyController;
   late Animation<Offset> _flyOffset;
   late final Animation<double> _flyOpacity;
@@ -250,6 +272,11 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   void initState() {
     super.initState();
     soundManager = GetIt.instance<SoundManager>();
+
+    _circleGameController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
 
     _flyController = AnimationController(vsync: this, duration: _flyDuration);
     _flyOpacity = Tween<double>(begin: 1, end: 0).animate(
@@ -360,7 +387,11 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       _pickNewArrowDirection();
       _arrowController.forward(from: 0); // launch next arrow
     } else {
-      handleLevelComplete(false);
+      if (isCircleGame) {
+        endAfterCircle = true;
+      } else {
+        handleLevelComplete(false);
+      }
     }
   }
 
@@ -465,6 +496,11 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     if (_inputCooldown) return;
     if (options.isEmpty || levelTransitioning) return;
 
+    if (isCircleGame) {
+      handleCircleTap();
+      return;
+    }
+
     final bool inZone = _arrowIsInsideZone(context);
     final Option real = options.first;
 
@@ -475,13 +511,16 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     }
 
     if (inZone && real == option) {
-      handleCorrectOption();
+      handleCorrectOption(isCircleStart: real == Option.circle);
     } else {
       handleWrongOption();
     }
   }
 
-  void handleCorrectOption() {
+  void handleCorrectOption({
+    bool isCircleStart = false,
+    bool isCircleEnd = false,
+  }) {
     if (_inputCooldown) return; // Prevent double input
     _inputCooldown = true;
 
@@ -503,7 +542,9 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     triggerFlyOverlay(options.first, true);
 
     setState(() {
-      options.removeAt(0);
+      if (!isCircleEnd) {
+        options.removeAt(0);
+      }
       _zoneBorderColor = Colors.green;
       levelScore += earned;
       totalScore += earned;
@@ -526,7 +567,116 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
       });
     });
 
-    _nextArrowOrLevelEnd();
+    if (!isCircleEnd) {
+      _nextArrowOrLevelEnd();
+    }
+    if (isCircleStart) {
+      startCircleGame();
+    }
+    if (endAfterCircle && isCircleGame) {
+      handleLevelComplete(false);
+    }
+  }
+
+  void handleCircleTap() {
+    bool counterClockWise = circleGameEndAngle > circleGameStartAngle;
+
+    double anticipation =
+        15 * (counterClockWise ? 1 : -1); // how far before the real target
+    const double tolerance = 10; // ± window size
+
+    final double currentAngle = _circleGameAngle.value % 360;
+
+    // Shift the target 15° earlier and wrap into 0‑360
+    final double anticipatedAngle =
+        (circleGameEndAngle - anticipation + 360) % 360;
+
+    // Smallest distance between two bearings
+    double diff = (currentAngle - anticipatedAngle).abs();
+    if (diff > 180) diff = 360 - diff;
+
+    final bool isCorrect = diff <= tolerance;
+
+    if (isCorrect) {
+      winCircleGame();
+    } else {
+      failCircleGame();
+    }
+  }
+
+  void failCircleGame() {
+    _circleGameController.stop();
+    handleWrongOption(isCircleGame: true);
+    // if (endAfterCircle) {
+    //   handleLevelComplete(false);
+    // }
+    setState(() {
+      isCircleGame = false;
+      _arrowController.forward(from: 0); // Restart arrow animation
+    });
+  }
+
+  void winCircleGame() {
+    _circleGameController.stop();
+    handleCorrectOption(isCircleEnd: true);
+
+    // if (endAfterCircle) {
+    //   handleLevelComplete(false);
+    // }
+    setState(() {
+      isCircleGame = false;
+      _arrowController.forward(from: 0); // Restart arrow animation
+    });
+  }
+
+  void startCircleGame() {
+    final randomStartAngle = _random.nextInt(360).toDouble();
+    // random value between 60 and 90
+    final randomVal = 60 + _random.nextInt(31).toDouble();
+    final randomEndAngle =
+        randomStartAngle + (randomVal * (_random.nextBool() ? 1 : -1));
+
+    setState(() {
+      circleGameStartAngle = randomStartAngle;
+      circleGameEndAngle = randomEndAngle;
+
+      // Calculate delta, handling 0°/360° boundary correctly
+      double delta = randomEndAngle - randomStartAngle;
+      if (delta < 0) delta += 360;
+      if (delta > 180) delta -= 360; // Take shortest path
+
+      circleGameDeltaAngle = delta;
+      isCircleGame = true;
+      _arrowController.stop();
+    });
+
+    // Reset the controller to ensure it starts from 0
+    _circleGameController.reset();
+
+    // Set duration and create animation
+    _circleGameController.duration = const Duration(seconds: 2);
+    _circleGameProgress = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _circleGameController, curve: Curves.linear),
+    );
+
+    // Create the angle animation - this is the key fix
+    _circleGameAngle =
+        Tween<double>(
+          begin: circleGameStartAngle,
+          end: circleGameStartAngle + circleGameDeltaAngle,
+        ).animate(
+          CurvedAnimation(parent: _circleGameController, curve: Curves.linear),
+        );
+
+    // Start the animation from 0
+    // _circleGameController.duration = _circleGameDuration;
+    _circleGameController.duration = _circleGameDuration;
+    _circleGameController.forward(from: 0).whenComplete(() {
+      if (mounted) {
+        // winCircleGame();
+        failCircleGame();
+      }
+    });
   }
 
   void failLevel() {
@@ -571,8 +721,11 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     context.go('/');
   }
 
-  void handleWrongOption() {
-    if (_inputCooldown || levelTransitioning || options.isEmpty) return;
+  void handleWrongOption({bool isCircleGame = false}) {
+    if (_inputCooldown ||
+        levelTransitioning ||
+        (options.isEmpty && !isCircleGame))
+      return;
     _inputCooldown = true;
 
     soundManager.playBuzzSound();
@@ -596,14 +749,18 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     });
 
     setState(() {
-      options.removeAt(0);
+      if (!isCircleGame) {
+        options.removeAt(0);
+      }
       levelLives--;
       totalScore -= 50;
 
       if (levelLives <= 0) {
         failLevel();
       } else {
-        _nextArrowOrLevelEnd(); // 🟢 This was missing for levelLives > 0
+        if (!isCircleGame) {
+          _nextArrowOrLevelEnd(); // 🟢 This was missing for levelLives > 0
+        }
         final renderBox = context.findRenderObject() as RenderBox?;
         if (renderBox != null) {
           final center =
@@ -616,6 +773,11 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
         }
       }
     });
+
+    if (isCircleGame && endAfterCircle) {
+      // If it's a circle game and we failed, we still want to end the level
+      handleLevelComplete(false);
+    }
   }
 
   Future<void> handleLevelComplete(bool shouldEnd) async {
@@ -852,6 +1014,102 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     );
   }
 
+  Widget buildCircleGame() {
+    final double radius = 100; // Half of the big circle's size (200/2)
+    final double smallCircleRadius =
+        16; // Half of the existing small circle's size (20/2)
+    final double smallerCircleRadius = 10; // New smaller circle radius
+
+    bool counterClockWise = circleGameEndAngle > circleGameStartAngle;
+
+    return Center(
+      child: AnimatedBuilder(
+        animation: _circleGameController,
+        builder: (context, child) {
+          // Get current angle from animation (already in degrees)
+          final double currentAngleDegrees = _circleGameAngle.value;
+          // Convert to radians for trigonometric functions
+          final double endAngleDegrees =
+              (circleGameEndAngle -
+                  (circleGameAngleWindow * (counterClockWise ? 1 : -1))) %
+              360;
+
+          // Convert to radians for trigonometric functions
+          final double currentAngleRad = currentAngleDegrees * pi / 180;
+          final double endAngleRad = endAngleDegrees * pi / 180;
+
+          // Center of the big circle
+          final centerX = radius;
+          final centerY = radius;
+
+          // Position for the target circle at endAngle
+          final targetCircleX = centerX + (radius - 2) * cos(endAngleRad);
+          final targetCircleY = centerY + (radius - 2) * sin(endAngleRad);
+          final targetLeft = targetCircleX - smallCircleRadius;
+          final targetTop = targetCircleY - smallCircleRadius;
+
+          // Position for the moving circle at current animated angle
+          final movingCircleX = centerX + (radius - 2) * cos(currentAngleRad);
+          final movingCircleY = centerY + (radius - 2) * sin(currentAngleRad);
+          final movingLeft = movingCircleX - smallerCircleRadius;
+          final movingTop = movingCircleY - smallerCircleRadius;
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Big circle border
+              Container(
+                height: radius * 2,
+                width: radius * 2,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(color: Colors.white, width: 4),
+                  borderRadius: BorderRadius.circular(radius),
+                ),
+              ),
+              Positioned(
+                left: targetLeft,
+                top: targetTop,
+                child: Container(
+                  height: smallCircleRadius * 2,
+                  width: smallCircleRadius * 2,
+                  decoration: BoxDecoration(
+                    color: background,
+                    borderRadius: BorderRadius.circular(smallCircleRadius),
+                    border: Border.all(
+                      color: primary,
+                      width: 4,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Moving circle (the one that animates)
+              Positioned(
+                left: movingLeft,
+                top: movingTop,
+                child: Container(
+                  height: smallerCircleRadius * 2,
+                  width: smallerCircleRadius * 2,
+                  decoration: BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.circular(smallerCircleRadius),
+                    border: Border.all(
+                      color: primary,
+                      width: 3,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Target circle (the one to aim for)
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   /* ──────────────────────────────  BUILD  ────────────────────────────── */
   @override
   Widget build(BuildContext context) {
@@ -864,7 +1122,8 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
           buildArrow(),
           buildFlyOverlay(),
           buildCheckOverlay(),
-          buildFailOverlay(), // 🟥 add this
+          buildFailOverlay(),
+          if (isCircleGame) buildCircleGame(),
         ],
       ),
     );
