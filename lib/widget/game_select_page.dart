@@ -412,7 +412,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
                                     }
                                   : null,
                               isHovered: selectionIndex == 2,
-                              gameName: 'REACTION\nTEST',
+                              gameName: 'SPEED\nTEST',
                             ),
                           ],
                         ),
