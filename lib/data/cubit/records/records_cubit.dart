@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/model/game_records.dart';
+import 'package:human_benchmark/data/model/reaction_queue_test_result.dart';
 import 'package:human_benchmark/data/model/reaction_test_result.dart';
 import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
 import 'package:human_benchmark/data/repository/i_records_repository.dart';
@@ -22,7 +23,53 @@ class RecordsCubit extends Cubit<RecordsState> {
     print('Loaded records: $records');
   }
 
-  void saveReactionGameResult(ReactionTestResult result) async {
+  Future<void> handleNewGameResult(GameRecords newRecords) async {
+    if (newRecords.lastChimpScore > newRecords.chimpHighScore) {
+      newRecords = newRecords.copyWith(
+        chimpHighScore: newRecords.lastChimpScore,
+      );
+    }
+
+    if (newRecords.lastReactionScore < newRecords.fastestReactionTime ||
+        newRecords.fastestReactionTime == 0) {
+      newRecords = newRecords.copyWith(
+        fastestReactionTime: newRecords.lastReactionScore,
+      );
+    }
+
+    if (newRecords.lastVisualMemoryScore >
+        newRecords.longestVisualMemorySequence) {
+      newRecords = newRecords.copyWith(
+        longestVisualMemorySequence: newRecords.lastVisualMemoryScore,
+      );
+    }
+
+    if (newRecords.lastReactionQueueScore > newRecords.reactionQueueHighScore) {
+      newRecords = newRecords.copyWith(
+        reactionQueueHighScore: newRecords.lastReactionQueueScore,
+      );
+    }
+
+    emit(RecordsState.loaded(newRecords));
+    await recordsRepository.saveGameRecords(newRecords);
+  }
+
+  void saveReactionQueueTestResult(int score) async {
+    await state.whenOrNull(
+      loaded: (records) async {
+        final newRecords = records.copyWith(
+          lastReactionQueueScore: score,
+          lastWasReactionQueue: true,
+          lastWasChimp: false,
+          lastWasReaction: false,
+          lastWasVisualMemory: false,
+        );
+        await handleNewGameResult(newRecords);
+      },
+    );
+  }
+
+  void saveReactionGameResult(int score) async {
     await state.whenOrNull(
       initial: () {
         print(
@@ -30,43 +77,47 @@ class RecordsCubit extends Cubit<RecordsState> {
         );
       },
       loaded: (records) async {
-        print('Saving reaction game result: $result');
-        if (result.averageMs < records.fastestReactionTime ||
-            records.fastestReactionTime == 0) {
-          final newRecords = records.copyWith(
-            fastestReactionTime: result.averageMs,
-          );
-          recordsRepository.saveGameRecords(newRecords);
-          emit(RecordsState.loaded(newRecords));
-        }
+        print('Saving reaction game result: $score');
+        final newRecords = records.copyWith(
+          // fastestReactionTime: score,
+          lastReactionScore: score,
+          lastWasChimp: false,
+          lastWasReaction: true,
+          lastWasReactionQueue: false,
+          lastWasVisualMemory: false,
+        );
+        await handleNewGameResult(newRecords);
       },
     );
   }
 
-  void saveVisualMemoryGameResult(VisualMemoryTestResult result) async {
+  void saveVisualMemoryGameResult(int score) async {
     await state.whenOrNull(
       loaded: (records) async {
-        if (result.tileCount > records.longestVisualMemorySequence) {
-          final newRecords = records.copyWith(
-            longestVisualMemorySequence: result.tileCount,
-          );
-          await recordsRepository.saveGameRecords(newRecords);
-          emit(RecordsState.loaded(newRecords));
-        }
+        final newRecords = records.copyWith(
+          // longestVisualMemorySequence: score,
+          lastVisualMemoryScore: score,
+          lastWasChimp: false,
+          lastWasReaction: false,
+          lastWasReactionQueue: false,
+          lastWasVisualMemory: true,
+        );
+        await handleNewGameResult(newRecords);
       },
     );
   }
 
-  void saveChimpGameResult(ChimpTestResult result) async {
+  void saveChimpGameResult(int score) async {
     await state.whenOrNull(
       loaded: (records) async {
-        if (result.highScore > records.chimpHighScore) {
-          final newRecords = records.copyWith(
-            chimpHighScore: result.highScore,
-          );
-          await recordsRepository.saveGameRecords(newRecords);
-          emit(RecordsState.loaded(newRecords));
-        }
+        final newRecords = records.copyWith(
+          lastWasChimp: true,
+          lastWasReaction: false,
+          lastWasReactionQueue: false,
+          lastWasVisualMemory: false,
+          lastChimpScore: score,
+        );
+        await handleNewGameResult(newRecords);
       },
     );
   }

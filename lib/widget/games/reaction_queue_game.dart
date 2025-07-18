@@ -7,8 +7,12 @@ import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/colors.dart';
+import 'package:human_benchmark/data/model/reaction_queue_test_result.dart';
 import 'package:human_benchmark/data/sound_manager.dart';
 import 'package:human_benchmark/main.dart';
+
+import '../../data/cubit/game_result/game_result_cubit.dart';
+import '../../data/cubit/records/records_cubit.dart';
 
 class ReactionQueueGame extends StatefulWidget {
   const ReactionQueueGame({super.key});
@@ -922,6 +926,12 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
     // GetIt.I<RecordsCubit>().saveChimpGameResult(
     //   ChimpTestResult(highScore: totalScore),
     // );
+    // GetIt.I<GameResultCubit>().reactionQueueTestOver(totalScore);
+    GetIt.I<RecordsCubit>().saveReactionQueueTestResult(
+      // ReactionQueueTestResult(score: totalScore),
+      totalScore,
+      // ChimpTestResult(highScore: totalScore),
+    );
     context.go('/');
   }
 

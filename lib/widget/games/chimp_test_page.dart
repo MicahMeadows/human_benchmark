@@ -184,11 +184,11 @@ class _ChimpTestPageState extends State<ChimpTestPage> {
     setState(() {
       isCountingDown = false;
     });
-    GetIt.I<GameResultCubit>().chimpTestOver(
-      ChimpTestResult(highScore: sequenceLength - 1),
-    );
+    // GetIt.I<GameResultCubit>().chimpTestOver(
+    //   ChimpTestResult(highScore: sequenceLength - 1),
+    // );
     GetIt.I<RecordsCubit>().saveChimpGameResult(
-      ChimpTestResult(highScore: totalScore),
+      totalScore,
     );
     context.go('/');
   }

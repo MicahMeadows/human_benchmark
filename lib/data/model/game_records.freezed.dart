@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GameRecords {
 
- int get fastestReactionTime; int get longestVisualMemorySequence; int get chimpHighScore;
+ int get fastestReactionTime; int get longestVisualMemorySequence; int get chimpHighScore; int get reactionQueueHighScore; int get lastReactionScore; int get lastReactionQueueScore; int get lastChimpScore; int get lastVisualMemoryScore; bool get lastWasReaction; bool get lastWasReactionQueue; bool get lastWasChimp; bool get lastWasVisualMemory;
 /// Create a copy of GameRecords
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $GameRecordsCopyWith<GameRecords> get copyWith => _$GameRecordsCopyWithImpl<Game
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameRecords&&(identical(other.fastestReactionTime, fastestReactionTime) || other.fastestReactionTime == fastestReactionTime)&&(identical(other.longestVisualMemorySequence, longestVisualMemorySequence) || other.longestVisualMemorySequence == longestVisualMemorySequence)&&(identical(other.chimpHighScore, chimpHighScore) || other.chimpHighScore == chimpHighScore));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameRecords&&(identical(other.fastestReactionTime, fastestReactionTime) || other.fastestReactionTime == fastestReactionTime)&&(identical(other.longestVisualMemorySequence, longestVisualMemorySequence) || other.longestVisualMemorySequence == longestVisualMemorySequence)&&(identical(other.chimpHighScore, chimpHighScore) || other.chimpHighScore == chimpHighScore)&&(identical(other.reactionQueueHighScore, reactionQueueHighScore) || other.reactionQueueHighScore == reactionQueueHighScore)&&(identical(other.lastReactionScore, lastReactionScore) || other.lastReactionScore == lastReactionScore)&&(identical(other.lastReactionQueueScore, lastReactionQueueScore) || other.lastReactionQueueScore == lastReactionQueueScore)&&(identical(other.lastChimpScore, lastChimpScore) || other.lastChimpScore == lastChimpScore)&&(identical(other.lastVisualMemoryScore, lastVisualMemoryScore) || other.lastVisualMemoryScore == lastVisualMemoryScore)&&(identical(other.lastWasReaction, lastWasReaction) || other.lastWasReaction == lastWasReaction)&&(identical(other.lastWasReactionQueue, lastWasReactionQueue) || other.lastWasReactionQueue == lastWasReactionQueue)&&(identical(other.lastWasChimp, lastWasChimp) || other.lastWasChimp == lastWasChimp)&&(identical(other.lastWasVisualMemory, lastWasVisualMemory) || other.lastWasVisualMemory == lastWasVisualMemory));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fastestReactionTime,longestVisualMemorySequence,chimpHighScore);
+int get hashCode => Object.hash(runtimeType,fastestReactionTime,longestVisualMemorySequence,chimpHighScore,reactionQueueHighScore,lastReactionScore,lastReactionQueueScore,lastChimpScore,lastVisualMemoryScore,lastWasReaction,lastWasReactionQueue,lastWasChimp,lastWasVisualMemory);
 
 @override
 String toString() {
-  return 'GameRecords(fastestReactionTime: $fastestReactionTime, longestVisualMemorySequence: $longestVisualMemorySequence, chimpHighScore: $chimpHighScore)';
+  return 'GameRecords(fastestReactionTime: $fastestReactionTime, longestVisualMemorySequence: $longestVisualMemorySequence, chimpHighScore: $chimpHighScore, reactionQueueHighScore: $reactionQueueHighScore, lastReactionScore: $lastReactionScore, lastReactionQueueScore: $lastReactionQueueScore, lastChimpScore: $lastChimpScore, lastVisualMemoryScore: $lastVisualMemoryScore, lastWasReaction: $lastWasReaction, lastWasReactionQueue: $lastWasReactionQueue, lastWasChimp: $lastWasChimp, lastWasVisualMemory: $lastWasVisualMemory)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $GameRecordsCopyWith<$Res>  {
   factory $GameRecordsCopyWith(GameRecords value, $Res Function(GameRecords) _then) = _$GameRecordsCopyWithImpl;
 @useResult
 $Res call({
- int fastestReactionTime, int longestVisualMemorySequence, int chimpHighScore
+ int fastestReactionTime, int longestVisualMemorySequence, int chimpHighScore, int reactionQueueHighScore, int lastReactionScore, int lastReactionQueueScore, int lastChimpScore, int lastVisualMemoryScore, bool lastWasReaction, bool lastWasReactionQueue, bool lastWasChimp, bool lastWasVisualMemory
 });
 
 
@@ -65,12 +65,21 @@ class _$GameRecordsCopyWithImpl<$Res>
 
 /// Create a copy of GameRecords
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fastestReactionTime = null,Object? longestVisualMemorySequence = null,Object? chimpHighScore = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fastestReactionTime = null,Object? longestVisualMemorySequence = null,Object? chimpHighScore = null,Object? reactionQueueHighScore = null,Object? lastReactionScore = null,Object? lastReactionQueueScore = null,Object? lastChimpScore = null,Object? lastVisualMemoryScore = null,Object? lastWasReaction = null,Object? lastWasReactionQueue = null,Object? lastWasChimp = null,Object? lastWasVisualMemory = null,}) {
   return _then(_self.copyWith(
 fastestReactionTime: null == fastestReactionTime ? _self.fastestReactionTime : fastestReactionTime // ignore: cast_nullable_to_non_nullable
 as int,longestVisualMemorySequence: null == longestVisualMemorySequence ? _self.longestVisualMemorySequence : longestVisualMemorySequence // ignore: cast_nullable_to_non_nullable
 as int,chimpHighScore: null == chimpHighScore ? _self.chimpHighScore : chimpHighScore // ignore: cast_nullable_to_non_nullable
-as int,
+as int,reactionQueueHighScore: null == reactionQueueHighScore ? _self.reactionQueueHighScore : reactionQueueHighScore // ignore: cast_nullable_to_non_nullable
+as int,lastReactionScore: null == lastReactionScore ? _self.lastReactionScore : lastReactionScore // ignore: cast_nullable_to_non_nullable
+as int,lastReactionQueueScore: null == lastReactionQueueScore ? _self.lastReactionQueueScore : lastReactionQueueScore // ignore: cast_nullable_to_non_nullable
+as int,lastChimpScore: null == lastChimpScore ? _self.lastChimpScore : lastChimpScore // ignore: cast_nullable_to_non_nullable
+as int,lastVisualMemoryScore: null == lastVisualMemoryScore ? _self.lastVisualMemoryScore : lastVisualMemoryScore // ignore: cast_nullable_to_non_nullable
+as int,lastWasReaction: null == lastWasReaction ? _self.lastWasReaction : lastWasReaction // ignore: cast_nullable_to_non_nullable
+as bool,lastWasReactionQueue: null == lastWasReactionQueue ? _self.lastWasReactionQueue : lastWasReactionQueue // ignore: cast_nullable_to_non_nullable
+as bool,lastWasChimp: null == lastWasChimp ? _self.lastWasChimp : lastWasChimp // ignore: cast_nullable_to_non_nullable
+as bool,lastWasVisualMemory: null == lastWasVisualMemory ? _self.lastWasVisualMemory : lastWasVisualMemory // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -152,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int fastestReactionTime,  int longestVisualMemorySequence,  int chimpHighScore)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int fastestReactionTime,  int longestVisualMemorySequence,  int chimpHighScore,  int reactionQueueHighScore,  int lastReactionScore,  int lastReactionQueueScore,  int lastChimpScore,  int lastVisualMemoryScore,  bool lastWasReaction,  bool lastWasReactionQueue,  bool lastWasChimp,  bool lastWasVisualMemory)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GameRecords() when $default != null:
-return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_that.chimpHighScore);case _:
+return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_that.chimpHighScore,_that.reactionQueueHighScore,_that.lastReactionScore,_that.lastReactionQueueScore,_that.lastChimpScore,_that.lastVisualMemoryScore,_that.lastWasReaction,_that.lastWasReactionQueue,_that.lastWasChimp,_that.lastWasVisualMemory);case _:
   return orElse();
 
 }
@@ -173,10 +182,10 @@ return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int fastestReactionTime,  int longestVisualMemorySequence,  int chimpHighScore)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int fastestReactionTime,  int longestVisualMemorySequence,  int chimpHighScore,  int reactionQueueHighScore,  int lastReactionScore,  int lastReactionQueueScore,  int lastChimpScore,  int lastVisualMemoryScore,  bool lastWasReaction,  bool lastWasReactionQueue,  bool lastWasChimp,  bool lastWasVisualMemory)  $default,) {final _that = this;
 switch (_that) {
 case _GameRecords():
-return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_that.chimpHighScore);}
+return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_that.chimpHighScore,_that.reactionQueueHighScore,_that.lastReactionScore,_that.lastReactionQueueScore,_that.lastChimpScore,_that.lastVisualMemoryScore,_that.lastWasReaction,_that.lastWasReactionQueue,_that.lastWasChimp,_that.lastWasVisualMemory);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -190,10 +199,10 @@ return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int fastestReactionTime,  int longestVisualMemorySequence,  int chimpHighScore)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int fastestReactionTime,  int longestVisualMemorySequence,  int chimpHighScore,  int reactionQueueHighScore,  int lastReactionScore,  int lastReactionQueueScore,  int lastChimpScore,  int lastVisualMemoryScore,  bool lastWasReaction,  bool lastWasReactionQueue,  bool lastWasChimp,  bool lastWasVisualMemory)?  $default,) {final _that = this;
 switch (_that) {
 case _GameRecords() when $default != null:
-return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_that.chimpHighScore);case _:
+return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_that.chimpHighScore,_that.reactionQueueHighScore,_that.lastReactionScore,_that.lastReactionQueueScore,_that.lastChimpScore,_that.lastVisualMemoryScore,_that.lastWasReaction,_that.lastWasReactionQueue,_that.lastWasChimp,_that.lastWasVisualMemory);case _:
   return null;
 
 }
@@ -205,12 +214,21 @@ return $default(_that.fastestReactionTime,_that.longestVisualMemorySequence,_tha
 @JsonSerializable()
 
 class _GameRecords implements GameRecords {
-  const _GameRecords({required this.fastestReactionTime, required this.longestVisualMemorySequence, required this.chimpHighScore});
+  const _GameRecords({required this.fastestReactionTime, required this.longestVisualMemorySequence, required this.chimpHighScore, required this.reactionQueueHighScore, required this.lastReactionScore, required this.lastReactionQueueScore, required this.lastChimpScore, required this.lastVisualMemoryScore, required this.lastWasReaction, required this.lastWasReactionQueue, required this.lastWasChimp, required this.lastWasVisualMemory});
   factory _GameRecords.fromJson(Map<String, dynamic> json) => _$GameRecordsFromJson(json);
 
 @override final  int fastestReactionTime;
 @override final  int longestVisualMemorySequence;
 @override final  int chimpHighScore;
+@override final  int reactionQueueHighScore;
+@override final  int lastReactionScore;
+@override final  int lastReactionQueueScore;
+@override final  int lastChimpScore;
+@override final  int lastVisualMemoryScore;
+@override final  bool lastWasReaction;
+@override final  bool lastWasReactionQueue;
+@override final  bool lastWasChimp;
+@override final  bool lastWasVisualMemory;
 
 /// Create a copy of GameRecords
 /// with the given fields replaced by the non-null parameter values.
@@ -225,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameRecords&&(identical(other.fastestReactionTime, fastestReactionTime) || other.fastestReactionTime == fastestReactionTime)&&(identical(other.longestVisualMemorySequence, longestVisualMemorySequence) || other.longestVisualMemorySequence == longestVisualMemorySequence)&&(identical(other.chimpHighScore, chimpHighScore) || other.chimpHighScore == chimpHighScore));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameRecords&&(identical(other.fastestReactionTime, fastestReactionTime) || other.fastestReactionTime == fastestReactionTime)&&(identical(other.longestVisualMemorySequence, longestVisualMemorySequence) || other.longestVisualMemorySequence == longestVisualMemorySequence)&&(identical(other.chimpHighScore, chimpHighScore) || other.chimpHighScore == chimpHighScore)&&(identical(other.reactionQueueHighScore, reactionQueueHighScore) || other.reactionQueueHighScore == reactionQueueHighScore)&&(identical(other.lastReactionScore, lastReactionScore) || other.lastReactionScore == lastReactionScore)&&(identical(other.lastReactionQueueScore, lastReactionQueueScore) || other.lastReactionQueueScore == lastReactionQueueScore)&&(identical(other.lastChimpScore, lastChimpScore) || other.lastChimpScore == lastChimpScore)&&(identical(other.lastVisualMemoryScore, lastVisualMemoryScore) || other.lastVisualMemoryScore == lastVisualMemoryScore)&&(identical(other.lastWasReaction, lastWasReaction) || other.lastWasReaction == lastWasReaction)&&(identical(other.lastWasReactionQueue, lastWasReactionQueue) || other.lastWasReactionQueue == lastWasReactionQueue)&&(identical(other.lastWasChimp, lastWasChimp) || other.lastWasChimp == lastWasChimp)&&(identical(other.lastWasVisualMemory, lastWasVisualMemory) || other.lastWasVisualMemory == lastWasVisualMemory));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fastestReactionTime,longestVisualMemorySequence,chimpHighScore);
+int get hashCode => Object.hash(runtimeType,fastestReactionTime,longestVisualMemorySequence,chimpHighScore,reactionQueueHighScore,lastReactionScore,lastReactionQueueScore,lastChimpScore,lastVisualMemoryScore,lastWasReaction,lastWasReactionQueue,lastWasChimp,lastWasVisualMemory);
 
 @override
 String toString() {
-  return 'GameRecords(fastestReactionTime: $fastestReactionTime, longestVisualMemorySequence: $longestVisualMemorySequence, chimpHighScore: $chimpHighScore)';
+  return 'GameRecords(fastestReactionTime: $fastestReactionTime, longestVisualMemorySequence: $longestVisualMemorySequence, chimpHighScore: $chimpHighScore, reactionQueueHighScore: $reactionQueueHighScore, lastReactionScore: $lastReactionScore, lastReactionQueueScore: $lastReactionQueueScore, lastChimpScore: $lastChimpScore, lastVisualMemoryScore: $lastVisualMemoryScore, lastWasReaction: $lastWasReaction, lastWasReactionQueue: $lastWasReactionQueue, lastWasChimp: $lastWasChimp, lastWasVisualMemory: $lastWasVisualMemory)';
 }
 
 
@@ -245,7 +263,7 @@ abstract mixin class _$GameRecordsCopyWith<$Res> implements $GameRecordsCopyWith
   factory _$GameRecordsCopyWith(_GameRecords value, $Res Function(_GameRecords) _then) = __$GameRecordsCopyWithImpl;
 @override @useResult
 $Res call({
- int fastestReactionTime, int longestVisualMemorySequence, int chimpHighScore
+ int fastestReactionTime, int longestVisualMemorySequence, int chimpHighScore, int reactionQueueHighScore, int lastReactionScore, int lastReactionQueueScore, int lastChimpScore, int lastVisualMemoryScore, bool lastWasReaction, bool lastWasReactionQueue, bool lastWasChimp, bool lastWasVisualMemory
 });
 
 
@@ -262,12 +280,21 @@ class __$GameRecordsCopyWithImpl<$Res>
 
 /// Create a copy of GameRecords
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fastestReactionTime = null,Object? longestVisualMemorySequence = null,Object? chimpHighScore = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fastestReactionTime = null,Object? longestVisualMemorySequence = null,Object? chimpHighScore = null,Object? reactionQueueHighScore = null,Object? lastReactionScore = null,Object? lastReactionQueueScore = null,Object? lastChimpScore = null,Object? lastVisualMemoryScore = null,Object? lastWasReaction = null,Object? lastWasReactionQueue = null,Object? lastWasChimp = null,Object? lastWasVisualMemory = null,}) {
   return _then(_GameRecords(
 fastestReactionTime: null == fastestReactionTime ? _self.fastestReactionTime : fastestReactionTime // ignore: cast_nullable_to_non_nullable
 as int,longestVisualMemorySequence: null == longestVisualMemorySequence ? _self.longestVisualMemorySequence : longestVisualMemorySequence // ignore: cast_nullable_to_non_nullable
 as int,chimpHighScore: null == chimpHighScore ? _self.chimpHighScore : chimpHighScore // ignore: cast_nullable_to_non_nullable
-as int,
+as int,reactionQueueHighScore: null == reactionQueueHighScore ? _self.reactionQueueHighScore : reactionQueueHighScore // ignore: cast_nullable_to_non_nullable
+as int,lastReactionScore: null == lastReactionScore ? _self.lastReactionScore : lastReactionScore // ignore: cast_nullable_to_non_nullable
+as int,lastReactionQueueScore: null == lastReactionQueueScore ? _self.lastReactionQueueScore : lastReactionQueueScore // ignore: cast_nullable_to_non_nullable
+as int,lastChimpScore: null == lastChimpScore ? _self.lastChimpScore : lastChimpScore // ignore: cast_nullable_to_non_nullable
+as int,lastVisualMemoryScore: null == lastVisualMemoryScore ? _self.lastVisualMemoryScore : lastVisualMemoryScore // ignore: cast_nullable_to_non_nullable
+as int,lastWasReaction: null == lastWasReaction ? _self.lastWasReaction : lastWasReaction // ignore: cast_nullable_to_non_nullable
+as bool,lastWasReactionQueue: null == lastWasReactionQueue ? _self.lastWasReactionQueue : lastWasReactionQueue // ignore: cast_nullable_to_non_nullable
+as bool,lastWasChimp: null == lastWasChimp ? _self.lastWasChimp : lastWasChimp // ignore: cast_nullable_to_non_nullable
+as bool,lastWasVisualMemory: null == lastWasVisualMemory ? _self.lastWasVisualMemory : lastWasVisualMemory // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

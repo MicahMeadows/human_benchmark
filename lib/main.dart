@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/data/cubit/credit_bank/credit_bank_cubit.dart';
-import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
+// import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/data/repository/i_records_repository.dart';
 import 'package:human_benchmark/data/repository/shared_pref_records_repository.dart';
@@ -17,7 +17,7 @@ import 'package:human_benchmark/widget/games/visual_memory_page.dart';
 final IRecordsRepository recordsRepository = SharedPrefRecordsRepository();
 
 final soundManager = SoundManager()..setup();
-final gameResultCubit = GameResultCubit();
+// final gameResultCubit = GameResultCubit();
 final creditBankCubit = CreditBankCubit();
 final recordsCubit = RecordsCubit(recordsRepository: recordsRepository)
   ..loadRecords();
@@ -25,7 +25,7 @@ final recordsCubit = RecordsCubit(recordsRepository: recordsRepository)
 void registerDependencies() {
   GetIt.I.registerSingleton<SoundManager>(soundManager);
   GetIt.I.registerSingleton<CreditBankCubit>(creditBankCubit);
-  GetIt.I.registerSingleton<GameResultCubit>(gameResultCubit);
+  // GetIt.I.registerSingleton<GameResultCubit>(gameResultCubit);
   GetIt.I.registerSingleton<RecordsCubit>(recordsCubit);
 }
 

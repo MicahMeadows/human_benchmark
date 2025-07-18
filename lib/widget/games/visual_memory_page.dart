@@ -332,11 +332,13 @@ class _VisualMemoryPageState extends State<VisualMemoryPage> {
       if (lives <= 0) {
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return;
-        GetIt.I<GameResultCubit>().visualMemoryTestOver(
-          VisualMemoryTestResult(tileCount: sequenceLength - 1),
-        );
+        // GetIt.I<GameResultCubit>().visualMemoryTestOver(
+        //   VisualMemoryTestResult(tileCount: sequenceLength - 1),
+        // );
         GetIt.I<RecordsCubit>().saveVisualMemoryGameResult(
-          VisualMemoryTestResult(tileCount: sequenceLength - 1),
+          // VisualMemoryTestResult(tileCount: sequenceLength - 1),
+          // sequenceLength - 1,
+          totalScore,
         );
         context.go('/');
       } else {

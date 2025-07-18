@@ -8,7 +8,6 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/colors.dart';
 import 'package:human_benchmark/data/cubit/credit_bank/credit_bank_cubit.dart';
-import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
 import 'package:human_benchmark/widget/blinking_text.dart';
 import 'package:human_benchmark/widget/game_select_button.dart';
@@ -25,7 +24,7 @@ class GameSelectPage extends StatefulWidget {
 class _GameSelectPageState extends State<GameSelectPage> {
   bool _canSelect = false;
   final recordsCubit = GetIt.I<RecordsCubit>();
-  final gameResultCubit = GetIt.I<GameResultCubit>();
+  // final gameResultCubit = GetIt.I<GameResultCubit>();
   final creditBankCubit = GetIt.I<CreditBankCubit>();
   StreamSubscription<GamepadEvent>? gamepadSubscription;
 
@@ -81,7 +80,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
     return particles;
   }
 
-  Widget buildRecentResultBanner(bool hasCoins) {
+  Widget buildRecentResultBanner(bool hasCoins, RecordsState recordsState) {
     return Stack(
       children: [
         Positioned(
@@ -102,21 +101,23 @@ class _GameSelectPageState extends State<GameSelectPage> {
           color: Color(0xff141414),
           height: 500,
           // width: 600,
-          child: BlocBuilder<GameResultCubit, GameResultState>(
-            bloc: gameResultCubit,
-            builder: (context, state) {
-              return state.when(
-                // initial: () => Center(child: Text('no game played')),
-                initial: () {
-                  return Center(
-                    child: BlinkingText(
-                      text: hasCoins
-                          ? 'SELECT GAME TO PLAY!'
-                          : 'INSERT CREDITS TO PLAY',
-                    ),
-                  );
-                },
-                chimpTest: (result) => Center(
+          // child: BlocBuilder<GameResultCubit, GameResultState>(
+          //   bloc: gameResultCubit,
+          //   builder: (context, state) {
+          child: recordsState.when(
+            // initial: () => Center(child: Text('no game played')),
+            initial: () {
+              return Center(
+                child: BlinkingText(
+                  text: hasCoins
+                      ? 'SELECT GAME TO PLAY!'
+                      : 'INSERT CREDITS TO PLAY',
+                ),
+              );
+            },
+            loaded: (records) {
+              if (records.lastWasChimp) {
+                return Center(
                   child: Row(
                     children: [
                       Spacer(),
@@ -138,7 +139,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
                             ),
                           ),
                           Text(
-                            '${result.highScore}',
+                            '${records.lastChimpScore}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 60,
@@ -151,44 +152,9 @@ class _GameSelectPageState extends State<GameSelectPage> {
                       Spacer(),
                     ],
                   ),
-                ),
-                visualMemoryTest: (result) => Center(
-                  child: Row(
-                    children: [
-                      Spacer(),
-                      Spacer(),
-                      Image.asset(
-                        'assets/image/brainicon.png',
-                        height: 300,
-                      ),
-                      Spacer(),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEW SCORE',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            '${result.tileCount}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Spacer(),
-                      Spacer(),
-                    ],
-                  ),
-                ),
-                reactionTest: (reactionTime) => Center(
+                );
+              } else if (records.lastWasReaction) {
+                return Center(
                   child: Row(
                     children: [
                       Spacer(),
@@ -210,7 +176,7 @@ class _GameSelectPageState extends State<GameSelectPage> {
                             ),
                           ),
                           Text(
-                            '${reactionTime}',
+                            '${records.lastReactionScore}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 60,
@@ -223,7 +189,84 @@ class _GameSelectPageState extends State<GameSelectPage> {
                       Spacer(),
                     ],
                   ),
-                ),
+                );
+              } else if (records.lastWasReactionQueue) {
+                return Center(
+                  child: Row(
+                    children: [
+                      Spacer(),
+                      Spacer(),
+                      Image.asset(
+                        'assets/image/eyecon.png',
+                        height: 300,
+                      ),
+                      Spacer(),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'NEW SCORE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 60,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            '${records.reactionQueueHighScore}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 60,
+                              color: primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      Spacer(),
+                    ],
+                  ),
+                );
+              } else if (records.lastWasVisualMemory) {
+                return Center(
+                  child: Row(
+                    children: [
+                      Spacer(),
+                      Spacer(),
+                      Image.asset(
+                        'assets/image/brainicon.png',
+                        height: 300,
+                      ),
+                      Spacer(),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'NEW SCORE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 60,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            '${records.lastVisualMemoryScore}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 60,
+                              color: primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Spacer(),
+                      Spacer(),
+                    ],
+                  ),
+                );
+              }
+              return Center(
+                child: Text('No last game found.'),
               );
             },
           ),
@@ -356,66 +399,75 @@ class _GameSelectPageState extends State<GameSelectPage> {
                       ],
                     ),
 
-                    buildRecentResultBanner(coins > 0),
+                    buildRecentResultBanner(coins > 0, recordsState),
                     SizedBox(height: 30),
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.symmetric(horizontal: 200),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          spacing: 60,
-                          children: [
-                            const SizedBox(height: 0),
-                            GameSelectButton(
-                              spacing: 5,
-                              highScore: 123456,
-                              lastScore: 29182,
-                              imageScale: 1.8,
-                              // backgroundImage:
-                              //     'assets/image/brain_background.png',
-                              backgroundImage: 'assets/image/brainicon.png',
-                              onTap: coins >= 1
-                                  ? () {
-                                      confirmSelection(0);
-                                    }
-                                  : null,
-                              isHovered: selectionIndex == 0,
-                              gameName: 'MEMORY\nTEST',
+                      child: Builder(
+                        builder: (context) {
+                          final records = recordsState.whenOrNull(
+                            loaded: (records) => records,
+                          );
+                          return Container(
+                            margin: EdgeInsets.symmetric(horizontal: 200),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              spacing: 60,
+                              children: [
+                                const SizedBox(height: 0),
+                                GameSelectButton(
+                                  spacing: 5,
+                                  highScore:
+                                      records?.longestVisualMemorySequence ?? 0,
+                                  lastScore:
+                                      records?.lastVisualMemoryScore ?? 0,
+                                  imageScale: 1.8,
+                                  backgroundImage: 'assets/image/brainicon.png',
+                                  onTap: coins >= 1
+                                      ? () {
+                                          confirmSelection(0);
+                                        }
+                                      : null,
+                                  isHovered: selectionIndex == 0,
+                                  gameName: 'MEMORY\nTEST',
+                                ),
+                                GameSelectButton(
+                                  spacing: 5,
+                                  imageScale: 1.8,
+                                  highScore: records?.chimpHighScore ?? 0,
+                                  lastScore: records?.lastChimpScore ?? 0,
+                                  backgroundImage:
+                                      // 'assets/image/chimp_background.png',
+                                      'assets/image/chimpicon.png',
+                                  onTap: coins >= 1
+                                      ? () {
+                                          confirmSelection(1);
+                                        }
+                                      : null,
+                                  isHovered: selectionIndex == 1,
+                                  gameName: 'CHIMP\nTEST',
+                                ),
+                                GameSelectButton(
+                                  spacing: 5,
+                                  imageScale: 1.8,
+                                  highScore:
+                                      records?.reactionQueueHighScore ?? 0,
+                                  lastScore:
+                                      records?.lastReactionQueueScore ?? 0,
+                                  backgroundImage:
+                                      // 'assets/image/chimp_background.png',
+                                      'assets/image/eyecon.png',
+                                  onTap: coins >= 1
+                                      ? () {
+                                          confirmSelection(2);
+                                        }
+                                      : null,
+                                  isHovered: selectionIndex == 2,
+                                  gameName: 'SPEED\nTEST',
+                                ),
+                              ],
                             ),
-                            GameSelectButton(
-                              spacing: 5,
-                              imageScale: 1.8,
-                              highScore: 238289,
-                              lastScore: 2838,
-                              backgroundImage:
-                                  // 'assets/image/chimp_background.png',
-                                  'assets/image/chimpicon.png',
-                              onTap: coins >= 1
-                                  ? () {
-                                      confirmSelection(1);
-                                    }
-                                  : null,
-                              isHovered: selectionIndex == 1,
-                              gameName: 'CHIMP\nTEST',
-                            ),
-                            GameSelectButton(
-                              spacing: 5,
-                              imageScale: 1.8,
-                              highScore: 238289,
-                              lastScore: 2838,
-                              backgroundImage:
-                                  // 'assets/image/chimp_background.png',
-                                  'assets/image/eyecon.png',
-                              onTap: coins >= 1
-                                  ? () {
-                                      confirmSelection(2);
-                                    }
-                                  : null,
-                              isHovered: selectionIndex == 2,
-                              gameName: 'SPEED\nTEST',
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ),
                   ],

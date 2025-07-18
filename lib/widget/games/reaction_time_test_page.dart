@@ -68,9 +68,10 @@ class _ReactionTimeTestPageState extends State<ReactionTimeTestPage> {
       testsCompleted++;
       if (testsCompleted == numTestsToComplete) {
         int averageTimeMs = totalReactionTimeMs ~/ numTestsToComplete;
-        GetIt.I<GameResultCubit>().reactionTestOver(averageTimeMs);
+        // GetIt.I<GameResultCubit>().reactionTestOver(averageTimeMs);
         GetIt.I<RecordsCubit>().saveReactionGameResult(
-          ReactionTestResult(averageMs: averageTimeMs),
+          // ReactionTestResult(averageMs: averageTimeMs),
+          averageTimeMs,
         );
         context.go('/');
       } else {
