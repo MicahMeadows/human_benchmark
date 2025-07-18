@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
-import 'package:human_benchmark/data/model/reaction_test_result.dart';
 
 class ReactionTimeTestPage extends StatefulWidget {
   const ReactionTimeTestPage({super.key});

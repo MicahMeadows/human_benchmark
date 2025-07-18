@@ -7,12 +7,9 @@ import 'package:gamepads/gamepads.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:human_benchmark/colors.dart';
-import 'package:human_benchmark/data/cubit/game_result/game_result_cubit.dart';
 import 'package:human_benchmark/data/cubit/records/records_cubit.dart';
-import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
 import 'package:human_benchmark/data/sound_manager.dart';
 import 'package:human_benchmark/widget/flip_tile.dart';
-import 'package:just_audio/just_audio.dart';
 
 enum GameState { notStarted, preview, playing, finished, lost }
 

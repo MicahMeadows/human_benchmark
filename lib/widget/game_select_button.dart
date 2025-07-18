@@ -11,7 +11,7 @@ Widget getScoreSquare(String text, int value) {
           color: Color(0xff1e1e1e),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: Colors.white.withOpacity(0.07),
+            color: Colors.white.withValues(alpha: .07),
             width: 1,
           ),
         ),
@@ -53,7 +53,7 @@ Widget getScoreSquare(String text, int value) {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.75),
+                Colors.black.withValues(alpha: .75),
                 Colors.transparent,
               ],
             ),
@@ -74,7 +74,7 @@ Widget getScoreSquare(String text, int value) {
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
               colors: [
-                Colors.white.withOpacity(0.1),
+                Colors.white.withValues(alpha: .1),
                 Colors.transparent,
               ],
             ),
@@ -186,7 +186,7 @@ class _GameSelectButtonState extends State<GameSelectButton>
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(widget.isHovered ? 7 : 10),
-              color: background.withOpacity(1),
+              color: background.withValues(alpha: 1),
             ),
             child: Stack(
               fit: StackFit.expand,

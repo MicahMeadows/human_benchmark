@@ -32,7 +32,6 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   static const double _minZoneSize = 230;
   static const double _zoneShrinkRate =
       9; // pixels per second (70 pixels over 10 seconds)
-  static const Duration _zoneShrinkDuration = Duration(seconds: 10);
 
   double _currentZoneSize = _initialZoneSize;
   double get _zoneSize => _currentZoneSize;
@@ -52,7 +51,8 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   late AnimationController _circleGameController;
   Duration get _circleGameDuration =>
       Duration(milliseconds: getCircleGameDurMillis());
-  late Animation<double> _circleGameProgress; // from 0 to 1
+
+  late Animation<double> _circleGameProgress;
 
   int randomBetween(int min, int max) {
     return min + Random().nextInt(max - min + 1);
@@ -184,7 +184,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
               fontWeight: FontWeight.bold,
               shadows: [
                 Shadow(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: .5),
                   blurRadius: 4,
                   offset: Offset(2, 2),
                 ),
@@ -934,8 +934,9 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   void handleWrongOption({bool isCircleGame = false}) {
     if (_inputCooldown ||
         levelTransitioning ||
-        (options.isEmpty && !isCircleGame))
+        (options.isEmpty && !isCircleGame)) {
       return;
+    }
     _inputCooldown = true;
 
     // Get center of screen for miss animation
@@ -1211,7 +1212,7 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
         decoration: BoxDecoration(
           color: const Color(0xff050505),
           border: Border.all(
-            color: _zoneBorderColor ?? Colors.white.withOpacity(.35),
+            color: _zoneBorderColor ?? Colors.white.withValues(alpha: .35),
             width: 4,
           ),
           borderRadius: BorderRadius.circular(10),
@@ -1221,8 +1222,9 @@ class _ReactionQueueGameState extends State<ReactionQueueGame>
   }
 
   Widget buildFlyOverlay() {
-    if (!showFlyOverlay || lastCorrectOption == null)
+    if (!showFlyOverlay || lastCorrectOption == null) {
       return const SizedBox.shrink();
+    }
 
     final child = Center(
       child: buildOptionIcon(

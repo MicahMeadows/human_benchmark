@@ -1,10 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:human_benchmark/data/model/chimp_test_result.dart';
 import 'package:human_benchmark/data/model/game_records.dart';
-import 'package:human_benchmark/data/model/reaction_queue_test_result.dart';
-import 'package:human_benchmark/data/model/reaction_test_result.dart';
-import 'package:human_benchmark/data/model/visual_memory_test_result.dart';
 import 'package:human_benchmark/data/repository/i_records_repository.dart';
 
 part 'records_state.dart';
