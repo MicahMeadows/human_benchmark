@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 
 class BlinkingText extends StatefulWidget {
   final String text;
+  final TextStyle? style;
 
-  const BlinkingText({super.key, required this.text});
+  const BlinkingText({
+    Key? key,
+    required this.text,
+    this.style,
+  }) : super(key: key);
 
   @override
-  State<BlinkingText> createState() => _BlinkingTextState();
+  _BlinkingTextState createState() => _BlinkingTextState();
 }
 
 class _BlinkingTextState extends State<BlinkingText>
@@ -18,13 +23,10 @@ class _BlinkingTextState extends State<BlinkingText>
   void initState() {
     super.initState();
     _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
-      duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
-
-    _opacity = Tween<double>(begin: 1.0, end: 0.2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _opacity = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
   }
 
   @override
@@ -35,23 +37,18 @@ class _BlinkingTextState extends State<BlinkingText>
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: AnimatedBuilder(
-        animation: _opacity,
-        builder: (context, child) {
-          return Opacity(
-            opacity: _opacity.value,
-            child: Text(
-              widget.text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+    return FadeTransition(
+      opacity: _opacity,
+      child: Text(
+        widget.text,
+        style:
+            widget.style ??
+            const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-          );
-        },
+        textAlign: TextAlign.center,
       ),
     );
   }

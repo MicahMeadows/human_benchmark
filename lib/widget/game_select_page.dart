@@ -117,150 +117,96 @@ class _GameSelectPageState extends State<GameSelectPage> {
             },
             loaded: (records) {
               if (records.lastWasChimp) {
+                bool isHighScore =
+                    records.lastChimpScore == records.chimpHighScore;
                 return Center(
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Spacer(),
-                      Spacer(),
                       Image.asset(
                         'assets/image/chimpicon.png',
                         height: 300,
                       ),
-                      Spacer(),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEW SCORE',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            '${records.lastChimpScore}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: primary,
-                            ),
-                          ),
-                        ],
+                      BlinkingText(
+                        text:
+                            '${isHighScore ? 'NEW HIGH SCORE!' : 'NEW SCORE'}\n${records.lastChimpScore}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 60,
+                          color: isHighScore ? Colors.yellow : Colors.white,
+                        ),
                       ),
-                      Spacer(),
-                      Spacer(),
                     ],
                   ),
                 );
               } else if (records.lastWasReaction) {
+                bool isHighScore =
+                    records.lastReactionScore == records.fastestReactionTime;
                 return Center(
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Spacer(),
-                      Spacer(),
                       Image.asset(
                         'assets/image/eyecon.png',
                         height: 300,
                       ),
-                      Spacer(),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEW SCORE',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            '${records.lastReactionScore}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: primary,
-                            ),
-                          ),
-                        ],
+                      BlinkingText(
+                        text:
+                            '${isHighScore ? 'NEW HIGH SCORE!' : 'NEW SCORE'}\n${records.lastReactionScore}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 60,
+                          color: isHighScore ? Colors.yellow : Colors.white,
+                        ),
                       ),
-                      Spacer(),
-                      Spacer(),
                     ],
                   ),
                 );
               } else if (records.lastWasReactionQueue) {
+                bool isHighScore =
+                    records.lastReactionQueueScore ==
+                    records.reactionQueueHighScore;
                 return Center(
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Spacer(),
-                      Spacer(),
                       Image.asset(
                         'assets/image/eyecon.png',
                         height: 300,
                       ),
-                      Spacer(),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEW SCORE',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            '${records.reactionQueueHighScore}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: primary,
-                            ),
-                          ),
-                        ],
+                      BlinkingText(
+                        text:
+                            '${isHighScore ? 'NEW HIGH SCORE!' : 'NEW SCORE'}\n${records.reactionQueueHighScore}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 60,
+                          color: isHighScore ? Colors.yellow : Colors.white,
+                        ),
                       ),
-                      Spacer(),
-                      Spacer(),
                     ],
                   ),
                 );
               } else if (records.lastWasVisualMemory) {
+                bool isHighScore =
+                    records.lastVisualMemoryScore ==
+                    records.longestVisualMemorySequence;
                 return Center(
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Spacer(),
-                      Spacer(),
                       Image.asset(
                         'assets/image/brainicon.png',
                         height: 300,
                       ),
-                      Spacer(),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEW SCORE',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            '${records.lastVisualMemoryScore}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 60,
-                              color: primary,
-                            ),
-                          ),
-                        ],
+                      BlinkingText(
+                        text:
+                            '${isHighScore ? 'NEW HIGH SCORE!' : 'NEW SCORE'}\n${records.reactionQueueHighScore}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 60,
+                          color: isHighScore ? Colors.yellow : Colors.white,
+                        ),
                       ),
-                      Spacer(),
-                      Spacer(),
                     ],
                   ),
                 );
